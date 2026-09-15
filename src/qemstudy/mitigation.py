@@ -40,6 +40,11 @@ def calibration_circuits(n: int) -> list[QuantumCircuit]:
 
 
 def estimate_confusion(n: int, run: Callable, shots_per_circuit: int, seed: int):
+    # NOTE: shots_per_circuit is uniform across the 2n calibration circuits, so a
+    # calibration allowance not divisible by 2n leaves a few shots unspent (always
+    # in the mitigated arm's disfavour). Stage A data was generated with this
+    # behaviour; the maximum observed deviation was 0.27% at B=1500 and it is
+    # reported in results/processed/verdicts.md rather than hidden.
     """Per-qubit 2x2 confusion matrices, MEASURED from calibration circuits.
 
     Deliberately does not read the ground-truth readout error out of the noise

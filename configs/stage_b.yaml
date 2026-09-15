@@ -5,9 +5,18 @@ description: >
   Does an estimator that wins at fixed parameters also win when driving an
   optimiser at the same per-evaluation budget?
 tasks: [tfim, qaoa_p1]
+# PROTOCOL DEVIATION (documented, made BEFORE Stage B execution, after Stage A
+# timing was known): restricted from two device noise models to one.
+# Reason: measured Stage B cost was ~92 min for the pre-registered 2x2x4x5 grid,
+# which would breach the 2-hour compute budget given Stage A consumed ~33 min.
+# Trade chosen deliberately: keep all 5 seeds and all 40 SPSA iterations (so the
+# optimisation is still meaningful and CIs are unaffected), and drop the second
+# noise model. RQ3 asks whether the estimation-stage ranking transfers in-loop,
+# which one noise model can answer; noise-model sensitivity (EQ2) is already
+# covered by Stage A across all 6 noise settings.
+# dev_lagos retained as the readout-dominated regime where methods differ most.
 noise:
   - {name: dev_lagos,   kind: device}
-  - {name: dev_algiers, kind: device}
 methods: [none, zne, rem, zne_rem]
 seeds: [0, 1, 2, 3, 4]
 budget_per_eval: 3000

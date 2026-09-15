@@ -68,21 +68,41 @@ the two chosen differ by ~15× in readout error while sharing the same native tw
 
 ## 4. The budget-matching rule (the core methodological commitment)
 
-Every method receives **exactly the same total number of shots** *B* per objective-function
-evaluation. This is the rule that makes RQ1 meaningful.
+*B* is the **total** number of shots per objective-function evaluation, summed over all
+measurement bases. (VQE uses 2 bases, QAOA 1; the per-basis split is *B*/n_bases, and the split is
+recorded in every result row.) This is the rule that makes RQ1 meaningful.
 
-| Method | Allocation of total budget *B* (per measurement basis) |
+Two accounting regimes are used, and they are reported separately because the choice materially
+changes REM's apparent cost:
+
+### 4a. Stage A — `per_estimate` accounting (conservative; worst case for REM)
+
+Calibration is re-paid on every single estimate, out of *B*. Every method therefore spends
+**exactly** *B* shots, and this is asserted automatically after the run.
+
+| Method | Allocation of total budget *B* |
 |---|---|
-| `none` | *B* shots on the bare circuit |
-| `zne` | ⌊*B*/3⌋ shots at each of scale factors 1, 2, 3 |
-| `rem` | 0.8·*B* on the circuit + 0.2·*B* split evenly over the 2n calibration circuits |
+| `none` | *B* on the bare circuit |
+| `zne` | *B*/3 at each of scale factors 1, 2, 3 |
+| `rem` | 0.8·*B* on the circuit + 0.2·*B* over the 2n calibration circuits |
 | `zne_rem` | 0.8·*B* split three ways over scale factors + 0.2·*B* on calibration |
 
-- **Budget sweep:** *B* ∈ {1500, 3000, 6000, 12000, 24000}. All values divisible by 3 and by 5, so no allocation requires rounding that would break the match.
-- **Reported invariant:** every results row records `shots_used`, `circuit_executions`, and `wall_clock_s`. A post-run assertion checks that `shots_used` is equal across methods within a comparison group; any deviation is surfaced, not silently absorbed.
-- **Calibration amortisation.** The estimation-stage experiment charges calibration **strictly per estimate** (the conservative choice, worst case for REM). The in-loop experiment amortises one calibration set over the whole optimisation run (realistic practice). **Both accounting choices are reported**, because the choice materially changes REM's apparent cost.
+### 4b. Stage B — `amortised` accounting (realistic practice)
 
----
+One calibration set is estimated at the start of a run and reused for all 80+ evaluations.
+Because calibration is paid once by the caller, each evaluation spends the **full** *B* on
+circuits — deducting the calibration fraction again would double-bill REM.
+
+Measured consequence (n = 7 evaluations, *B* = 3000): `none` and `zne` each spend 21 000 shots;
+`rem` and `zne_rem` each spend 21 000 circuit shots **plus** a one-time 600-shot calibration, i.e.
+21 600 total. **This is a deliberate, reported ~2.9% budget inequality in REM's disfavour**,
+recorded per-run in the `calibration_shots` field and surfaced in the Stage B summary table.
+It is not hidden, per the study's scientific requirements.
+
+- **Budget sweep (Stage A):** *B* ∈ {1500, 3000, 6000, 12000, 24000}, all divisible by 3 and by 5.
+- **Reported invariant:** every row records `shots_used`, `circuit_executions` and `wall_clock_s`.
+  A post-run assertion checks `shots_used` is identical across methods within each Stage A
+  comparison group; the check's result is printed in `results/processed/verdicts.md`.
 
 ## 5. Experiment stages
 

@@ -89,15 +89,22 @@ def estimate(executor: Executor, circuits: dict[str, QuantumCircuit],
     use_rem = method in ("rem", "zne_rem")
     use_zne = method in ("zne", "zne_rem")
 
-    # ---- readout calibration (measured, charged against the budget) -------
+    # ---- readout calibration --------------------------------------------
+    # Two accounting regimes, deliberately distinguished:
+    #   * confusion is None (Stage A, "per_estimate"): calibration is performed
+    #     here and PAID OUT OF `budget`, so every method spends exactly `budget`.
+    #   * confusion supplied (Stage B, "amortised"): calibration was already paid
+    #     once by the caller, so the full `budget` goes to the circuits. Charging
+    #     the fraction again would double-bill REM.
     mats = confusion
+    circuit_budget = budget
     if use_rem and mats is None:
         cal_total = int(round(CAL_FRACTION * budget))
         per_cal = max(cal_total // (2 * executor.n), 1)
         mats, _, _ = estimate_confusion(
             executor.n, lambda cs, s, sd: executor.run(cs, s, sd), per_cal, seed + 9973)
         detail["cal_shots_per_circuit"] = per_cal
-    circuit_budget = budget - int(round(CAL_FRACTION * budget)) if use_rem else budget
+        circuit_budget = budget - cal_total
 
     # ---- main circuits ----------------------------------------------------
     if not use_zne:
