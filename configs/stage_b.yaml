@@ -1,0 +1,15 @@
+# Stage B -- in-loop optimisation (confirmatory for RQ3).
+# FROZEN before execution.
+stage: B
+description: >
+  Does an estimator that wins at fixed parameters also win when driving an
+  optimiser at the same per-evaluation budget?
+tasks: [tfim, qaoa_p1]
+noise:
+  - {name: dev_lagos,   kind: device}
+  - {name: dev_algiers, kind: device}
+methods: [none, zne, rem, zne_rem]
+seeds: [0, 1, 2, 3, 4]
+budget_per_eval: 3000
+spsa: {iterations: 40, a: 0.2, c: 0.15, alpha: 0.602, gamma: 0.101}
+calibration_accounting: amortised   # one calibration set reused for the whole run

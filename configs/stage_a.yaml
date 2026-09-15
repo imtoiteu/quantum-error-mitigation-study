@@ -1,0 +1,20 @@
+# Stage A -- estimation accuracy at fixed pre-optimised parameters.
+# Confirmatory for RQ1 (does mitigation help at matched budget?) and RQ2 (crossover).
+# FROZEN before execution. Seeds listed here are the only reportable seeds.
+stage: A
+description: >
+  Budget-matched comparison of mitigation arms on expectation-value estimation,
+  at fixed parameters, across noise models, noise strengths and shot budgets.
+tasks: [tfim, qaoa_p1]
+noise:
+  - {name: ideal,        kind: ideal}
+  - {name: dev_lagos,    kind: device}
+  - {name: dev_algiers,  kind: device}
+  - {name: param_lam0.5, kind: param, lam: 0.5}
+  - {name: param_lam1,   kind: param, lam: 1.0}
+  - {name: param_lam2,   kind: param, lam: 2.0}
+methods: [none, zne, rem, zne_rem]
+budgets: [1500, 3000, 6000, 12000, 24000]
+seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+zne_fit: richardson
+calibration_accounting: per_estimate   # conservative: REM pays calibration every estimate
