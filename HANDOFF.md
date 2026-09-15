@@ -150,9 +150,46 @@ At the largest budget (24 000 shots), the best method **depends on which noise m
 
 REM uses **2.6× more circuit executions than ZNE but is 1.7× faster in wall-clock**, because its calibration circuits are shallow while ZNE's folded circuits are deep. **Cost models based on circuit count alone mis-rank these methods.**
 
-### 5.9 RQ3 — in-loop optimisation
+### 5.9 RQ3 — in-loop optimisation: **the Stage A conclusion reverses**
 
-See §5.10 below (Stage B results table). *(Filled from `results/processed/stage_b_summary.csv`.)*
+40 runs, `dev_lagos`, 40 SPSA iterations (81 objective evaluations), 243 000 circuit shots per run
+for every method. Final parameters are scored by a **noiseless** re-evaluation, which separates
+"did the optimiser find good parameters?" from estimator noise.
+
+| Task | Method | final \|error\| | 95% CI | vs. unmitigated |
+|---|---|---|---|---|
+| **QAOA p=1** | **none** | **0.0046** | [0.0020, 0.0078] | — (**best**) |
+| | ZNE | 0.0236 | [0.0114, 0.0357] | **5× worse**, CIs disjoint |
+| | REM | 0.0527 | [0.0077, 0.1220] | **11× worse**, CIs essentially disjoint |
+| | ZNE+REM | 0.7669 | [0.1415, 1.3923] | **167× worse**, CIs disjoint |
+| **TFIM** | REM | 2.884 | [1.982, 3.975] | 0.93× (inconclusive) |
+| | none | 3.089 | [2.171, 4.133] | — |
+| | ZNE | 3.134 | [2.631, 3.716] | 1.01× (inconclusive) |
+| | ZNE+REM | 4.277 | [3.647, 4.997] | 1.38× (inconclusive, CIs overlap) |
+
+**Hypothesis H3 is confirmed, and more strongly than predicted.** H3 anticipated that the *ranking*
+would change in-loop. On QAOA it does not merely change — **it inverts**: the method that never
+harmed in Stage A (REM, 0 harms in 60 cells) is 11× worse than doing nothing when placed inside the
+optimisation loop, and every mitigated arm is significantly worse than the unmitigated baseline.
+
+**Mechanism, supported by the diagnostics table below.** An optimiser does not need an *unbiased*
+objective — it needs one whose *ordering* of parameter points is preserved. Noise-induced bias in
+these tasks is close to a monotone transformation of the true objective, so SPSA descends correctly
+without any mitigation. Mitigation removes that (harmless) bias while injecting variance into every
+gradient estimate, which is precisely what a stochastic optimiser cannot tolerate.
+
+**The unphysicality mechanism compounds it.** In-loop, ZNE+REM produced physically impossible
+objective values in **10.25%** (TFIM) and **3.25%** (QAOA) of evaluations — energies below the exact
+ground state, cuts above the exact maximum. The optimiser chases these artifacts. Its *observed*
+descent looks healthy (−2.20 on TFIM, comparable to the other arms) while its *actual* final
+parameters are the worst of any method. **A mitigated objective can look like it is converging
+while being actively misleading.**
+
+**TFIM in-loop is underpowered and is reported as inconclusive.** SPSA with 40 iterations on a
+16-parameter ansatz does not converge from a random start — all arms end 2.9–4.3 away from the
+reference of −4.734, and every CI overlaps the baseline. Only the QAOA arm (2 parameters, well
+converged, final error 0.0046 ≈ 0.08% of the exact optimum) supports a confirmatory claim. **No
+TFIM in-loop conclusion should be drawn from this pilot.**
 
 ---
 
@@ -208,9 +245,9 @@ See §5.10 below (Stage B results table). *(Filled from `results/processed/stage
 | K1 | A peer-reviewed paper already does budget-matched ZNE-vs-REM on VQE and QAOA | **Not triggered** — none located, but see the search limitations in §2 |
 | K2 | Alfaro (arXiv:2605.08251) published **and** extended to cross-method comparison | **Not triggered** — still an unrefereed single-author preprint, ZNE-only |
 | K3 | Effects too small to resolve above seed-to-seed variance | **Not triggered** — 46/60 REM "helps" verdicts by non-overlapping 95% CI |
-| K4 | Result is merely "mitigation always helps, monotonically" | **Not triggered** — the opposite: ZNE averages *worse than nothing*, and the winner depends on the noise model |
+| K4 | Result is merely "mitigation always helps, monotonically" | **Not triggered** — emphatically the opposite: ZNE averages *worse than nothing* at fixed parameters, the winner depends on the noise model, and in-loop the Stage A ranking **inverts** |
 
-**Why GO:** the pilot produced a decision-relevant, non-obvious result with a clean internal sanity check, several genuine negative findings (which are publishable at a benchmarking venue and do not require beating a classical baseline), and a working reproducible artifact. The contribution type matches what IEEE TQE and IEEE QCE demonstrably publish.
+**Why GO:** the pilot produced a decision-relevant, non-obvious, and *self-contradicting* result — mitigation clearly helps expectation-value **estimation** (Stage A: REM 46/60 helps, 0 harms) and clearly hurts **optimisation** at the same budget (Stage B: every mitigated arm significantly worse than doing nothing on the converged QAOA task). That tension is the paper. It comes with a clean internal sanity check (ideal-noise behaviour matches theory exactly), a mechanism supported by diagnostics (unphysical estimates misleading the optimiser), several genuine negative findings, and a working reproducible artifact. The contribution type matches what IEEE TQE and IEEE QCE demonstrably publish.
 
 **Why *conditional* — three things must happen before drafting:**
 
@@ -222,4 +259,6 @@ See §5.10 below (Stage B results table). *(Filled from `results/processed/stage
 
 ### Suggested next scope
 
-Keep the budget-matched framing as the paper's spine and lead with the **noise-model dependence** (§5.7) and the **unphysical-estimate rate** (§5.6) — both are concrete, surprising, and under-reported in the literature. Estimated compute for the full study at 30 seeds, 3 noise models, 2 ansätze: roughly 8–10× the pilot, i.e. ~9–11 hours on 4 cores. Still no cloud hardware required.
+Keep the budget-matched framing as the paper's spine, but **lead with the estimation-vs-optimisation reversal (§5.9)** — it is the strongest and most surprising result, it is directly actionable for practitioners, and neither near-miss preprint (§2) touches it. Support it with the **unphysical-estimate mechanism** (§5.6, §5.9) and the **noise-model dependence** (§5.7). A working title along the lines of *"Error mitigation improves estimation and degrades optimisation: a budget-matched study of small VQAs"* captures the contribution.
+
+**Priority for the full study:** fix the TFIM in-loop underpowering (it is the single biggest hole). Either raise the SPSA iteration count until the unmitigated arm converges, or start from perturbed pre-optimised parameters rather than random ones, so that the in-loop comparison is made in a regime where the optimiser actually works. Estimated compute for the full study at 30 seeds, 3 noise models, 2 ansätze: roughly 8–10× the pilot, i.e. ~9–11 hours on 4 cores. Still no cloud hardware required.

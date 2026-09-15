@@ -200,6 +200,36 @@ def fig_bias_variance(summ):
 
 
 # ------------------------------------------------------------------ Stage B
+EXACT_REF = {"tfim": -4.75877048, "qaoa_p1": 7.0}   # exact ground energy / exact max cut
+
+
+def inloop_diagnostics(df):
+    """Did SPSA actually converge, and was it fed physically impossible values?
+
+    A mitigated estimator that over-corrects reports an objective BELOW the true
+    ground state (VQE) or ABOVE the exact maximum cut (QAOA). Such values cannot
+    occur physically, so an optimiser that sees them is chasing an artifact.
+    """
+    rows = []
+    for _, r in df.iterrows():
+        tr = r["trace"]
+        obs = [v for it in tr for v in (it["f_plus"], it["f_minus"])]
+        if r["task"] == "tfim":
+            unphys = sum(1 for v in obs if v < EXACT_REF["tfim"])     # sign=+1, obj is energy
+        else:
+            unphys = sum(1 for v in obs if -v > EXACT_REF["qaoa_p1"])  # sign=-1, obj is -cut
+        first = (tr[0]["f_plus"] + tr[0]["f_minus"]) / 2
+        last = (tr[-1]["f_plus"] + tr[-1]["f_minus"]) / 2
+        rows.append(dict(task=r["task"], method=r["method"], seed=r["seed"],
+                         observed_delta=last - first, n_obs=len(obs),
+                         unphysical_in_loop=unphys,
+                         unphysical_frac=unphys / len(obs),
+                         final_err=r["abs_error_ideal_eval"]))
+    d = pd.DataFrame(rows)
+    d.to_csv(PROC / "stage_b_diagnostics.csv", index=False)
+    return d
+
+
 def analyse_b(df):
     rows = []
     for (task, noise, method), sub in df.groupby(["task", "noise", "method"]):
@@ -294,6 +324,17 @@ def main():
                    f"({cal/max(circ.max(),1)*100:.1f}% extra), a reported inequality in REM's "
                    f"disfavour rather than a hidden advantage.\n")
         out.append("\n```\n" + sb.round(4).to_string(index=False) + "\n```\n")
+        d = inloop_diagnostics(b)
+        agg = d.groupby(["task", "method"]).agg(
+            mean_observed_descent=("observed_delta", "mean"),
+            mean_final_err=("final_err", "mean"),
+            unphysical_pct=("unphysical_frac", lambda x: 100 * x.mean())).round(3)
+        out.append("\n### RQ3 diagnostics — did the optimiser converge, and was it misled?\n")
+        out.append("\n`mean_observed_descent` is the change in the NOISY objective the optimiser "
+                   "saw (negative = it thought it was improving). `unphysical_pct` is the share of "
+                   "in-loop objective evaluations that were physically impossible (VQE energy below "
+                   "the exact ground state, or QAOA cut above the exact maximum).\n")
+        out.append("\n```\n" + agg.to_string() + "\n```\n")
 
     (PROC / "verdicts.md").write_text("\n".join(out))
     print("\n".join(out))

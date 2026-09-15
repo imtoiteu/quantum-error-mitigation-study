@@ -93,10 +93,37 @@ qaoa_p1   param_lam2 zne_rem              1500
 ## RQ3 — in-loop optimisation (final error, noiseless re-evaluation)
 
 
-*Budget note (amortised accounting):* circuit shots per run are identical across methods (243,000-243,000); the REM arms additionally pay a one-time calibration of 0 shots (0.0% extra), a reported inequality in REM's disfavour rather than a hidden advantage.
+*Budget note (amortised accounting):* circuit shots per run are identical across methods (243,000-243,000); the REM arms additionally pay a one-time calibration of 600 shots (0.2% extra), a reported inequality in REM's disfavour rather than a hidden advantage.
 
 
 ```
-task     noise method  n_seeds  mean_abs_error    std  ci_lo  ci_hi  mean_shots  mean_execs  mean_wall_clock_s  mean_evals  mean_calibration_shots  mean_circuit_shots
-tfim dev_lagos   none        4           3.127 1.4537 1.9789 4.2756    243000.0       162.0           203.3886        81.0                     0.0            243000.0
+   task     noise  method  n_seeds  mean_abs_error    std  ci_lo  ci_hi  mean_shots  mean_execs  mean_wall_clock_s  mean_evals  mean_calibration_shots  mean_circuit_shots
+qaoa_p1 dev_lagos    none        5          0.0046 0.0038 0.0020 0.0078    243000.0        81.0           135.0916        81.0                     0.0            243000.0
+qaoa_p1 dev_lagos     rem        5          0.0527 0.0768 0.0077 0.1220    243600.0        93.0           126.2820        81.0                   600.0            243000.0
+qaoa_p1 dev_lagos     zne        5          0.0236 0.0159 0.0114 0.0357    243000.0       243.0           244.6346        81.0                     0.0            243000.0
+qaoa_p1 dev_lagos zne_rem        5          0.7669 0.8244 0.1415 1.3923    243600.0       255.0           253.4309        81.0                   600.0            243000.0
+   tfim dev_lagos    none        5          3.0891 1.2618 2.1707 4.1328    243000.0       162.0           197.9954        81.0                     0.0            243000.0
+   tfim dev_lagos     rem        5          2.8844 1.3083 1.9823 3.9746    243600.0       170.0           156.9412        81.0                   600.0            243000.0
+   tfim dev_lagos     zne        5          3.1338 0.6742 2.6313 3.7157    243000.0       486.0           371.6719        81.0                     0.0            243000.0
+   tfim dev_lagos zne_rem        5          4.2767 0.8806 3.6472 4.9972    243600.0       494.0           351.0110        81.0                   600.0            243000.0
+```
+
+
+### RQ3 diagnostics — did the optimiser converge, and was it misled?
+
+
+`mean_observed_descent` is the change in the NOISY objective the optimiser saw (negative = it thought it was improving). `unphysical_pct` is the share of in-loop objective evaluations that were physically impossible (VQE energy below the exact ground state, or QAOA cut above the exact maximum).
+
+
+```
+                 mean_observed_descent  mean_final_err  unphysical_pct
+task    method                                                        
+qaoa_p1 none                    -0.334           0.005            0.00
+        rem                     -0.834           0.053            0.00
+        zne                     -0.742           0.024            0.00
+        zne_rem                 -0.473           0.767            3.25
+tfim    none                    -0.983           3.089            0.00
+        rem                     -2.539           2.884            0.00
+        zne                     -2.263           3.134            0.00
+        zne_rem                 -2.196           4.277           10.25
 ```
