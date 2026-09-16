@@ -58,23 +58,28 @@ arrow(ax, (xs[4] + W/2, BY + BH + 0.005), (0.457, BY + BH + 0.005))# -> invert A
 arrow(ax, (0.457, BY + BH + 0.005), (0.3785, BY + BH))
 
 # defect callouts
-box(ax, 0.335, 0.585, 0.235, 0.145,
-    "DEFECT 1\nrebuilt with $\\mathtt{measure\\_all()}$:\nclbit $c\\!\\leftarrow\\!$ physical $q_c$,\ndiscarding $\\pi$",
-    RED, "#fdecea", fs=6.4, bold=True)
-arrow(ax, (0.4525, 0.730), (0.4525, Y), RED, ls="--")
+box(ax, 0.318, 0.575, 0.272, 0.155,
+    "DEFECT 1 (folding)\nmeasurements rebuilt generically:\nclbit $c\\!\\leftarrow\\!q_c$, discarding $\\pi$",
+    RED, "#fdecea", fs=6.2, bold=True)
+arrow(ax, (0.454, 0.730), (0.454, Y), RED, ls="--")
 
-box(ax, 0.022, 0.115, 0.265, 0.155,
-    "DEFECT 2\ncalibration indexed by virtual $i$,\nbut clbit $i$ reads physical $q_{\\pi(i)}$\n$\\Rightarrow$ $A$ inverted on wrong qubits",
-    RED, "#fdecea", fs=6.4, bold=True)
+box(ax, 0.008, 0.105, 0.300, 0.165,
+    "DEFECT 2 (calibration)\nindexed by virtual $i$, but clbit $i$\nreads physical $q_{\\pi(i)}$\n$\\Rightarrow A$ inverted on wrong qubits",
+    RED, "#fdecea", fs=6.2, bold=True)
 arrow(ax, (0.1335, 0.270), (0.1335, BY), RED, ls="--")
+ax.text(0.318, 0.150, "known hazard: M3 provides\n$\\mathtt{final\\_measurement\\_mapping}$",
+        fontsize=5.8, color=GREY, ha="left", va="center", style="italic")
 
-box(ax, 0.575, 0.105, 0.410, 0.175,
-    "Oracle for the regression tests:\nglobal folding at odd scale is $U U^{\\dagger} U = U$,\n"
-    "so the IDEAL distribution must be unchanged.\nAny difference is a bug, at any noise level.",
-    BLUE, "#eef6ff", fs=6.6)
+box(ax, 0.560, 0.092, 0.434, 0.196,
+    "TWO independent oracles are required:\n"
+    "(a) folding: $U U^{\\dagger} U = U$, so the ideal\n"
+    "distribution must be unchanged;\n"
+    "(b) REM: unequal response matrices, because\n"
+    "at $p=0$ oracle (a) is blind to Defect 2.",
+    BLUE, "#eef6ff", fs=6.1)
 
-ax.text(0.5, 0.955, "Budget-matched ZNE / REM pipeline and the two silent defect sites",
-        ha="center", fontsize=9.2, fontweight="bold")
+ax.text(0.5, 0.958, "Budget-matched ZNE / REM pipeline: two integration defect sites",
+        ha="center", fontsize=9.0, fontweight="bold")
 ax.text(0.5, 0.030,
         "Budget rule: every method spends the same total shots $B$  "
         "(unmitigated $B$; ZNE $B/3$ per scale; REM $0.8B$ circuits $+\\,0.2B$ calibration)",
