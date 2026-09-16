@@ -1,0 +1,308 @@
+{
+  "prism": {
+    "instance": "prism",
+    "n": 6,
+    "p": 1,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        3
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        2,
+        5
+      ]
+    ],
+    "exact_max_cut": 7,
+    "ansatz_reference_best_known": 5.939222467245408,
+    "ansatz_reference_params": [
+      0.2851693471104838,
+      2.7934079369047944
+    ],
+    "approx_ratio_at_reference": 0.8484603524636297,
+    "n_starts": 60,
+    "frac_starts_within_1e-6_of_best": 0.95,
+    "reference_is_proven_global_optimum": false
+  },
+  "cycle6": {
+    "instance": "cycle6",
+    "n": 6,
+    "p": 1,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        0
+      ]
+    ],
+    "exact_max_cut": 6,
+    "ansatz_reference_best_known": 4.499999998257719,
+    "ansatz_reference_params": [
+      0.39271024722271963,
+      2.748889041890053
+    ],
+    "approx_ratio_at_reference": 0.7499999997096198,
+    "n_starts": 60,
+    "frac_starts_within_1e-6_of_best": 1.0,
+    "reference_is_proven_global_optimum": false
+  },
+  "k33": {
+    "instance": "k33",
+    "n": 6,
+    "p": 1,
+    "edges": [
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        2,
+        5
+      ]
+    ],
+    "exact_max_cut": 9,
+    "ansatz_reference_best_known": 6.232050805574717,
+    "ansatz_reference_params": [
+      0.3077404813671964,
+      -0.3926871097923923
+    ],
+    "approx_ratio_at_reference": 0.6924500895083019,
+    "n_starts": 60,
+    "frac_starts_within_1e-6_of_best": 0.9666666666666667,
+    "reference_is_proven_global_optimum": false
+  },
+  "octahedron": {
+    "instance": "octahedron",
+    "n": 6,
+    "p": 1,
+    "edges": [
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ]
+    ],
+    "exact_max_cut": 8,
+    "ansatz_reference_best_known": 7.300197634991057,
+    "ansatz_reference_params": [
+      0.22786869460538287,
+      2.842989330977847
+    ],
+    "approx_ratio_at_reference": 0.9125247043738821,
+    "n_starts": 60,
+    "frac_starts_within_1e-6_of_best": 1.0,
+    "reference_is_proven_global_optimum": false
+  },
+  "path6": {
+    "instance": "path6",
+    "n": 6,
+    "p": 1,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "exact_max_cut": 5,
+    "ansatz_reference_best_known": 3.867907547785261,
+    "ansatz_reference_params": [
+      2.708255432732627,
+      3.534311421401821
+    ],
+    "approx_ratio_at_reference": 0.7735815095570522,
+    "n_starts": 60,
+    "frac_starts_within_1e-6_of_best": 0.5166666666666667,
+    "reference_is_proven_global_optimum": false
+  },
+  "wheel5": {
+    "instance": "wheel5",
+    "n": 6,
+    "p": 1,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "exact_max_cut": 8,
+    "ansatz_reference_best_known": 6.348630855065407,
+    "ansatz_reference_params": [
+      0.26280771394802227,
+      2.813908125245383
+    ],
+    "approx_ratio_at_reference": 0.7935788568831759,
+    "n_starts": 60,
+    "frac_starts_within_1e-6_of_best": 0.48333333333333334,
+    "reference_is_proven_global_optimum": false
+  }
+}

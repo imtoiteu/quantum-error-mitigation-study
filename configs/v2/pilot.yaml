@@ -1,0 +1,19 @@
+# Corrected PILOT (exploratory). Purpose: verify the fixed stack end-to-end,
+# measure per-cell runtime and seed-to-seed variability, and size the main study.
+# This data is EXPLORATORY and is kept separate from main-study evaluation data.
+study: corrected_pilot_v2
+p: 1
+instances: [prism, k33]
+noise:
+  - {name: dev_lagos,   kind: device}
+  - {name: dev_algiers, kind: device}
+methods: [none, zne, rem, zne_rem]
+budgets: [6000]
+seeds: [0, 1, 2, 3, 4, 5, 6, 7]
+impls: [v2, legacy]
+legacy_budget: 6000
+scales: [1.0, 3.0, 5.0]
+fit: richardson
+cal_fraction: 0.20
+rem_clip: true
+output: results/v2/raw/pilot.jsonl
