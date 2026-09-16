@@ -26,14 +26,32 @@ export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
 RUN="nice -n 15 .venv/bin/python"
 ```
 
-## 1. Correctness tests (seconds, no data needed)
+## 1. Correctness tests — TWO oracles (seconds, no data needed)
 
 ```bash
-$RUN tests/test_v2_correctness.py        # exit 0 = all pass
+$RUN tests/test_v2_correctness.py        # Oracle A: folding.  exit 0 = all pass
+$RUN tests/test_rem_indexing.py          # Oracle B: REM indexing. exit 0 = all pass
 ```
-Checks the folding oracle (odd-scale folding must leave the ideal distribution unchanged),
-exact ⟨Z_q⟩ invariance, operator-level equivalence, classical-register and measurement-map
-preservation, calibration alignment, and that `optimization_level=0` does not cancel folded pairs.
+
+**Oracle A** checks that odd-scale folding leaves the *exact* ideal probability vector unchanged
+(compared as exact statevector probabilities, not sampled estimates), plus operator-level
+equivalence, classical-register and measurement-map preservation, and that
+`optimization_level=0` does not cancel folded pairs. Clifford circuits agree to the last bit;
+with continuous rotations a constant ~1e-11 offset appears from floating-point angle
+representation, measured constant at scales 3/5/9.
+
+**Oracle B** is required because **Oracle A cannot detect the calibration defect**: it runs at zero
+readout noise, where every response matrix is the identity and permuting identities is undetectable.
+Oracle B uses unequal known response matrices and a non-identity measurement map, with an
+independently computed reference. That blindness is itself asserted as a test.
+
+## 1b. Positive control against the standard library
+
+```bash
+$RUN experiments/v2/positive_control_m3.py    # requires: pip install mthree
+```
+Runs M3 as documented (`mthree.utils.final_measurement_mapping`) and shows it agrees with the
+corrected implementation on every layout. We do not claim any released library is defective.
 
 ## 2. Impact audit on the earlier frozen study (seconds)
 
@@ -50,23 +68,30 @@ $RUN experiments/v2/pretrain_v2.py       # -> configs/v2/references.json
 ```
 60 multistart exact-statevector optimisations per instance. Deterministic given the seed hierarchy.
 
-## 4. Main study (checkpointed, resumable)
+## 4. Round-2 confirmation run (checkpointed, resumable)
 
 ```bash
-$RUN experiments/v2/run_study.py --config configs/v2/main_study.yaml
+$RUN experiments/v2/run_study.py --config configs/v2/confirm_round2.yaml
 # optional batching on a busy machine:
-$RUN experiments/v2/run_study.py --config configs/v2/main_study.yaml --limit 500
+$RUN experiments/v2/run_study.py --config configs/v2/confirm_round2.yaml --limit 500
 ```
-7,560 cells. Measured wall-clock on a contended 4-vCPU VPS: roughly 3 hours at `nice -n 15`.
+5,040 cells in the fresh namespace `v2r2_confirm_2026_09_16`, with two independent evaluation
+replicates per cell (replicate 0 selects, replicate 1 evaluates). Re-running the same command
+resumes from the JSONL and recomputes nothing.
+
+**Round-1 data** (`configs/v2/main_study.yaml`, namespace `v2_main_2026_09_16`) is retained for
+reference but is a **single exploratory campaign**: its seed coordinates omitted instance, noise,
+method and budget, so its "pilot" reproduced main-study values bit-for-bit. Do not treat any part of
+it as confirming any other part.
 
 ## 5. Analysis, tables, figures, traceability
 
 ```bash
-$RUN experiments/v2/analyze_main.py         # -> results/v2/processed/, figures/fig1-3
+$RUN experiments/v2/analyze_round2.py       # -> results/v2r2/processed/, figures/figR2_*
 $RUN experiments/v2/noise_scaling_audit.py  # -> supplementary/noise_scaling_audit.md
 $RUN figures/src/make_pipeline_fig.py       # -> figures/fig0_pipeline.{pdf,png}
-$RUN experiments/v2/make_tables.py          # -> manuscript/tables/*.tex (incl. macros.tex)
-$RUN experiments/v2/make_claim_evidence.py  # -> CLAIM_EVIDENCE.csv
+$RUN experiments/v2/make_tables_round2.py         # -> manuscript/tables/*.tex (incl. macros.tex)
+$RUN experiments/v2/make_claim_evidence_round2.py # -> CLAIM_EVIDENCE.csv
 ```
 
 ## 6. Manuscript
