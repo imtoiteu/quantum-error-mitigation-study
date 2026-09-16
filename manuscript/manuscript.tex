@@ -17,8 +17,8 @@
 
 \begin{document}
 
-\title{A Silent Measurement-Mapping Defect in Zero-Noise-Extrapolation\\
-Pipelines Changes Which Error-Mitigation Method Appears Best}
+\title{Silent Measurement-Mapping Defects Change Which\\
+Quantum Error-Mitigation Method Appears Best}
 
 \author{\IEEEauthorblockN{Author name withheld for review}
 \IEEEauthorblockA{Affiliation withheld for review\\
@@ -40,9 +40,12 @@ We then quantify the consequences on a complete, previously frozen benchmark of 
 two IBM calibration snapshots. Running identical seeds and configurations through the defective and
 corrected code, the two implementations disagree by \FONeminDis--\FONemaxDis{} in expected cut value,
 and \textbf{the mitigation method that appears best changes in \FlipRateAll\% of \FlipNAll{} cells}.
+Those changes are not cosmetic: following the defective recommendation costs \RegretAll{} in excess
+true error, against a best attainable error of \BestErrAll{}.
 In the frozen study, $18.8\%$ of estimation cells and $75\%$ of optimisation runs were affected, and
-the headline conclusion did not survive correction; we retract it. We release the corrected
-implementation, the regression tests, the prospectively fixed protocol, and all raw data.
+the headline conclusion did not survive correction; we retract it. The corrected
+implementation, the regression tests, the prospectively fixed protocol and all raw data accompany
+this submission and will be made public on acceptance.
 All results are simulator-only; we make no claim of quantum advantage.
 \end{abstract}
 
@@ -81,8 +84,8 @@ by virtual qubit while the measured bits follow $\pi$, the inverse is applied to
 \item We report the \textbf{corrected budget-matched comparison} of ZNE, REM and their composition
       on QAOA MaxCut across six distinct instances and two calibration snapshots with contrasting
       error-channel mix, with paired tests and multiplicity control (Section~\ref{sec:corrected}).
-\item We \textbf{retract} the affected conclusion of our own earlier frozen study and release the
-      corrected artifact (Section~\ref{sec:retraction}).
+\item We \textbf{retract} the affected conclusion of our own earlier frozen study and supply the
+      corrected artifact with this submission (Section~\ref{sec:retraction}).
 \end{itemize}
 
 \noindent We claim none of the following, all of which are established prior work: that folding
@@ -246,7 +249,9 @@ $p_{\mathrm{BH}}$ is Benjamini--Hochberg adjusted within the six-test family.}
 
 \begin{table}[t]
 \caption{Fraction of cells in which the best-performing mitigation method differs between the
-defective and corrected implementations.}
+defective and corrected implementations. \emph{Mean regret} is the excess true error (measured under
+the corrected implementation) incurred by following the defective recommendation, averaged over
+flipped cells; \emph{best attainable} is the mean true error of the correct choice.}
 \label{tab:flip}
 \centering\small
 \input{tables/tab_flip}
@@ -266,6 +271,13 @@ The practically important consequence is Table~\ref{tab:flip}: in \FlipRateAll\%
 \FlipNAll{} (instance, noise, seed) cells, \textbf{the mitigation method that appears best is not the
 same under the two implementations}. A benchmark run on the defective pipeline would therefore
 recommend a different method than the same benchmark run correctly, in the majority of cells.
+
+A flip between two near-identical methods would be cheap, so we also report the \emph{regret}: the
+excess \emph{true} error incurred by following the defective recommendation, measured under the
+corrected implementation. It is not cheap. On \texttt{dev\_algiers} the mean regret among flipped
+cells is \RegretAlgiers{} against a best attainable error of \BestErrAlgiers{} --- the defective
+recommendation is several times worse than the correct one --- and on \texttt{dev\_lagos} it is
+\RegretLagos{} against \BestErrLagos{}.
 
 \section{Corrected benchmark}\label{sec:corrected}
 
@@ -305,12 +317,14 @@ instance-to-instance heterogeneity. Simulator only.}
 \end{figure*}
 
 \subsection{Cost accounting}
-\begin{table}[t]
-\caption{Realised cost per estimate by method, corrected implementation.}
+\begin{table*}[t]
+\caption{Realised cost per estimate by method, corrected implementation. Shots are matched across
+methods; circuit executions deliberately are not, because execution count is the cost the budget rule
+converts into fewer shots per execution.}
 \label{tab:cost}
 \centering\small
 \input{tables/tab_cost}
-\end{table}
+\end{table*}
 
 \begin{table}[t]
 \caption{Total cost of the study. Offline scoring is exact (statevector) and therefore consumes no
@@ -365,9 +379,10 @@ can change their conclusions without changing their appearance. The defect repor
 present at all noise levels, and detectable by a test that needs no noise model at all: folding at an
 odd scale factor must leave the ideal distribution unchanged. On a complete benchmark it altered
 which method appeared best in \FlipRateAll\% of cells, and it invalidated the headline of an earlier
-frozen study, which we retract. We recommend that mitigation pipelines assert the measurement map
-after any circuit rewrite, and that readout calibration be indexed by the physical qubits the
-classical bits actually read.
+frozen study, which we retract. We recommend two concrete practices: assert the measurement map
+after \emph{any} circuit rewrite, and index readout calibration by the physical qubits the classical
+bits actually read. Both are cheap to check, and the oracle above makes the first one testable
+without a noise model.
 
 \section*{Use of AI assistance}
 The implementation, experiments, analysis and drafting of this manuscript were carried out with the

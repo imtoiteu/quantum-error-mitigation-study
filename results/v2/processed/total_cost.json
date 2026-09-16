@@ -1,0 +1,10 @@
+{
+  "total_shots": 61338000,
+  "circuit_shots": 55100400,
+  "calibration_shots": 6237600,
+  "circuit_executions": 12789,
+  "calibration_executions": 39156,
+  "scoring_shots": 0,
+  "wall_clock_core_hours": 1.3664681583965688,
+  "cells": 6263
+}

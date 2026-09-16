@@ -40,10 +40,12 @@ def t2_f1():
     fr=[]
     for idx,r in flip.iterrows():
         nm = "all" if idx=="ALL" else NL.get(idx,idx)
-        fr.append(f"{nm} & {int(r.n_cells)} & {int(r.n_flipped)} & {100*r.flip_rate:.1f}\\% \\\\")
+        fr.append(f"{nm} & {int(r.n_cells)} & {int(r.n_flipped)} & {100*r.flip_rate:.1f}\\% & "
+                  f"{r.mean_regret_flipped:.3f} & {r.mean_true_err_best:.3f} \\\\")
     w("tab_flip.tex",
-      "\\begin{tabular}{@{}lrrr@{}}\n\\toprule\nNoise & cells & best-method changed & rate \\\\\n"
-      "\\midrule\n" + "\n".join(fr) + "\n\\bottomrule\n\\end{tabular}\n")
+      "\\begin{tabular}{@{}lrrrrr@{}}\n\\toprule\nNoise & cells & best changed & rate & "
+      "mean regret & best attainable \\\\\n\\midrule\n" + "\n".join(fr) +
+      "\n\\bottomrule\n\\end{tabular}\n")
 
 def t3_f2():
     f2=pd.read_csv(PROC/"F2_method_vs_unmitigated.csv")
@@ -83,9 +85,6 @@ def t4_cost():
       f"CPU wall-clock & {tot['wall_clock_core_hours']:.2f} core-hours \\\\\n"
       "\\bottomrule\n\\end{tabular}\n")
 
-if __name__=="__main__":
-    t1_instances(); t2_f1(); t3_f2(); t4_cost(); macros()
-    print("all tables generated from processed results")
 
 
 def macros():
@@ -106,6 +105,13 @@ def macros():
     m("BudgetMaxDev", f"{100*dev['rel_dev'].max():.4f}")
     m("FlipRateAll", f"{100*flip.loc['ALL','flip_rate']:.0f}")
     m("FlipNAll", f"{int(flip.loc['ALL','n_cells'])}")
+    m("RegretAll", f"{flip.loc['ALL','mean_regret_flipped']:.3f}")
+    m("BestErrAll", f"{flip.loc['ALL','mean_true_err_best']:.3f}")
+    for nz in ("dev_lagos","dev_algiers"):
+        if nz in flip.index:
+            tag=nz.replace('dev_','').capitalize()
+            m("Regret"+tag, f"{flip.loc[nz,'mean_regret_flipped']:.3f}")
+            m("BestErr"+tag, f"{flip.loc[nz,'mean_true_err_best']:.3f}")
     for nz in ("dev_lagos","dev_algiers"):
         if nz in flip.index:
             m("FlipRate"+nz.replace('dev_','').capitalize(), f"{100*flip.loc[nz,'flip_rate']:.0f}")
@@ -129,3 +135,8 @@ def macros():
           LABEL[sub.loc[sub.mean_err_method.idxmin(),'method']])
     (TAB/"macros.tex").write_text("\n".join(L)+"\n")
     print(f"wrote macros.tex with {len(L)} generated macros")
+
+
+if __name__=="__main__":
+    t1_instances(); t2_f1(); t3_f2(); t4_cost(); macros()
+    print("all tables generated from processed results")

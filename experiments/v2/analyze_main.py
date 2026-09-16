@@ -112,11 +112,30 @@ def family1(df):
     recs=[]
     for idx,row in w.iterrows():
         bl=min(MITIG,key=lambda k:row[("legacy",k)]); bv=min(MITIG,key=lambda k:row[("v2",k)])
-        recs.append(dict(instance=idx[0],noise=idx[1],seed=idx[2],best_legacy=bl,best_v2=bv,flip=bl!=bv))
+        # Decision-relevant cost: having followed the defective recommendation, how much
+        # worse is that method's TRUE (corrected) error than the truly best method's?
+        regret = float(row[("v2",bl)] - row[("v2",bv)])
+        recs.append(dict(instance=idx[0],noise=idx[1],seed=idx[2],best_legacy=bl,best_v2=bv,
+                         flip=bl!=bv, regret=regret,
+                         true_err_best=float(row[("v2",bv)]),
+                         true_err_recommended=float(row[("v2",bl)])))
     fl=pd.DataFrame(recs); fl.to_csv(PROC/"F1_best_method_flips.csv",index=False)
     summ=fl.groupby("noise").flip.agg(["size","sum","mean"]).rename(
         columns={"size":"n_cells","sum":"n_flipped","mean":"flip_rate"})
     summ.loc["ALL"]=[len(fl),fl.flip.sum(),fl.flip.mean()]
+    # Regret: mean excess TRUE error incurred by following the defective recommendation.
+    # Reported alongside the flip rate because a flip between near-identical methods is cheap.
+    reg=fl.groupby("noise").regret.agg(["mean","median","max"]).rename(
+        columns={"mean":"mean_regret","median":"median_regret","max":"max_regret"})
+    reg.loc["ALL"]=[fl.regret.mean(),fl.regret.median(),fl.regret.max()]
+    flipped=fl[fl.flip]
+    regf=flipped.groupby("noise").regret.agg(["mean","median","max"]).rename(
+        columns={"mean":"mean_regret_flipped","median":"median_regret_flipped","max":"max_regret_flipped"})
+    if len(flipped):
+        regf.loc["ALL"]=[flipped.regret.mean(),flipped.regret.median(),flipped.regret.max()]
+    summ=summ.join(reg).join(regf)
+    summ["mean_true_err_best"]=fl.groupby("noise").true_err_best.mean().reindex(summ.index)
+    summ.loc["ALL","mean_true_err_best"]=fl.true_err_best.mean()
     summ.to_csv(PROC/"F1_flip_rate.csv")
     return f1, fl, summ
 
@@ -189,7 +208,7 @@ def fig_impl_impact(f1, fl, flip_summ, df):
     ax.set_xlabel("estimation error, corrected code",fontsize=8.5)
     ax.set_ylabel("estimation error, defective code",fontsize=8.5)
     ax.set_title("(a) same seed, same configuration",fontsize=9)
-    ax.legend(frameon=False,fontsize=7.5,loc="upper left")
+    ax.legend(frameon=False,fontsize=7.5,loc="lower right")
     # (b) |disagreement| by method and noise
     ax=axes[1]; style(ax)
     xs=np.arange(len(MITIG)); w=0.36
