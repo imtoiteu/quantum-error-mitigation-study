@@ -1,0 +1,382 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage[table]{xcolor}
+\usepackage{balance}
+\usepackage[hidelinks]{hyperref}
+
+% ---- generated numbers: every inline figure comes from tables/macros.tex,
+% ---- which experiments/v2/make_tables.py writes from the processed results.
+\input{tables/macros}
+
+\newcommand{\code}[1]{\texttt{\small #1}}
+
+\begin{document}
+
+\title{A Silent Measurement-Mapping Defect in Zero-Noise-Extrapolation\\
+Pipelines Changes Which Error-Mitigation Method Appears Best}
+
+\author{\IEEEauthorblockN{Author name withheld for review}
+\IEEEauthorblockA{Affiliation withheld for review\\
+Contact withheld for review}}
+
+\maketitle
+
+\begin{abstract}
+Quantum error mitigation is routinely benchmarked by comparing estimator accuracy across methods.
+We report a software-correctness failure mode that can invalidate such comparisons without producing
+any error, warning, or visibly implausible output. When unitary folding rebuilds a transpiled
+circuit's terminal measurements, it can discard the layout-induced mapping from physical qubits to
+classical bits; and when readout-error-mitigation calibration is indexed by virtual rather than
+physical qubits, the confusion matrix is inverted against the wrong qubits. We give minimal
+regression tests built on an exact oracle---global folding at odd scale factors implements
+$U U^{\dagger} U = U$, so the \emph{ideal} output distribution must be unchanged---and show that
+under a non-identity layout the defective pipeline returns a different deterministic bitstring.
+We then quantify the consequences on a complete, previously frozen benchmark of QAOA MaxCut under
+two IBM calibration snapshots. Running identical seeds and configurations through the defective and
+corrected code, the two implementations disagree by \FONeminDis--\FONemaxDis{} in expected cut value,
+and \textbf{the mitigation method that appears best changes in \FlipRateAll\% of \FlipNAll{} cells}.
+In the frozen study, $18.8\%$ of estimation cells and $75\%$ of optimisation runs were affected, and
+the headline conclusion did not survive correction; we retract it. We release the corrected
+implementation, the regression tests, the prospectively fixed protocol, and all raw data.
+All results are simulator-only; we make no claim of quantum advantage.
+\end{abstract}
+
+\begin{IEEEkeywords}
+quantum error mitigation, zero-noise extrapolation, readout error mitigation, reproducibility,
+benchmarking, QAOA
+\end{IEEEkeywords}
+
+\section{Introduction}
+Error mitigation is the standard way to extract usable expectation values from noisy quantum
+processors, and comparative benchmarks---which method, at what cost, on which problem---now guide
+practice~\cite{cai2023review,bultrini2023,russo2023}. Those benchmarks are software. Their
+conclusions depend not only on the mitigation theory but on whether the pipeline that implements it
+does what its description says.
+
+This paper reports a defect class in that pipeline, demonstrates it, and measures what it does to a
+benchmark's conclusions. The defect is not a statistical artefact of an extreme regime; it is a
+mapping error that is present at every depth, every noise level and every shot count, and it is
+silent: the pipeline emits a well-formed circuit and a plausible number.
+
+Concretely, two things can go wrong once a circuit has been transpiled to a device coupling map.
+First, transpilation chooses a layout $\pi$, so classical bit $c$ records physical qubit
+$q_{\pi(c)}$. Unitary folding that strips the terminal measurements and rebuilds them with a generic
+``measure all'' operation reinstates the mapping $c \leftarrow q_c$, discarding $\pi$. Second,
+readout-error mitigation calibrates a response matrix per qubit; if calibration circuits are indexed
+by virtual qubit while the measured bits follow $\pi$, the inverse is applied to the wrong qubits.
+
+\subsection*{Contributions}
+\begin{itemize}
+\item We identify two silent measurement-mapping defects in a budget-matched ZNE/REM pipeline and
+      give \textbf{minimal regression tests with an exact oracle} that detect them independently of
+      noise, shots, or problem (Section~\ref{sec:defect}).
+\item We \textbf{quantify the impact on benchmark conclusions}: on identical seeds and
+      configurations, the defective and corrected implementations disagree enough to change which
+      mitigation method looks best in \FlipRateAll\% of cells (Section~\ref{sec:impact}).
+\item We report the \textbf{corrected budget-matched comparison} of ZNE, REM and their composition
+      on QAOA MaxCut across six distinct instances and two calibration snapshots with contrasting
+      error-channel mix, with paired tests and multiplicity control (Section~\ref{sec:corrected}).
+\item We \textbf{retract} the affected conclusion of our own earlier frozen study and release the
+      corrected artifact (Section~\ref{sec:retraction}).
+\end{itemize}
+
+\noindent We claim none of the following, all of which are established prior work: that folding
+leaves state-preparation and measurement error unamplified~\cite{majumdar2023}; that odd integer
+scale factors avoid partial folds~\cite{majumdar2023}; that circuits should be transpiled before
+amplification~\cite{majumdar2023}; that shot budget governs which mitigation method
+wins~\cite{bultrini2023}; or that accuracy gains need not improve downstream
+decisions~\cite{scavino2026decision}.
+
+\section{Background and related work}\label{sec:related}
+
+\paragraph{Zero-noise extrapolation} ZNE estimates the noiseless expectation value by evaluating an
+observable at amplified noise levels and extrapolating to zero~\cite{temme2017,li2017}. Digital
+unitary folding replaces analogue noise scaling by inserting $U^{\dagger} U$
+pairs~\cite{giurgicatiron2020}, and is implemented in Mitiq~\cite{larose2022mitiq}. Majumdar
+\emph{et al.}~\cite{majumdar2023} set out best practices for digital ZNE, including transpiling
+before amplification, preferring odd integer scale factors $\{1,3,5,\dots\}$ to avoid partial folds,
+and composing ZNE with readout mitigation because folding does not amplify SPAM error. We adopt all
+of these recommendations; they are premises here, not results.
+
+\paragraph{Readout-error mitigation} Measurement error is frequently the dominant error source for
+shallow circuits~\cite{bravyi2021}, and is corrected by inverting a measured response
+matrix~\cite{bravyi2021,nation2021}. We use one specific variant---tensored per-qubit inversion with
+clipping---and our results should not be read as characterising all readout mitigation.
+
+\paragraph{Benchmarking mitigation} UNITED~\cite{bultrini2023} unifies ZNE, Clifford-data regression
+and virtual distillation and benchmarks them as a function of total shots on random circuits and
+QAOA MaxCut under a trapped-ion noise model; readout mitigation is not among its compared arms.
+Russo \emph{et al.}~\cite{russo2023} test platform-independent mitigation across three hardware
+providers. Fundamental sampling-cost bounds~\cite{takagi2022,quek2024} establish that mitigation is
+never free, which is why cost-equalised comparison is the meaningful one.
+
+\paragraph{Closest related work} Köster and Mauerer~\cite{koester2026} show that Richardson ZNE can
+produce \emph{artefactual} improvement: once amplification pushes the signal below the noise floor,
+the extrapolation collapses into a rescaling of a single noisy measurement. Their artefact is a
+\emph{statistical-regime} phenomenon that occurs in a correct implementation and is diagnosed by a
+``garbage-folding'' control. The defect we report is a \emph{correctness} phenomenon: it occurs at
+any depth and any signal level, is invisible to a regime-based control, and is fixed in code rather
+than by choosing scale factors. The two are complementary failure modes of the same pipeline, and we
+regard \cite{koester2026} as the closest relative of this work.
+
+\section{Problem setting}\label{sec:setting}
+
+\paragraph{Task} We use QAOA~\cite{farhi2014qaoa} at depth $p=1$ for MaxCut on six distinct connected
+six-vertex graphs (Table~\ref{tab:instances}), verified pairwise non-isomorphic. For a graph
+$G=(V,E)$ the objective is $C(z)=\sum_{(i,j)\in E}\tfrac{1}{2}\bigl(1-z_i z_j\bigr)$ and we estimate
+$\langle C\rangle$. Because $|V|=6$, both the exact combinatorial optimum $C_{\max}$ and the exact
+noiseless value of the ansatz are computable, so ``error'' is unambiguous.
+
+\paragraph{Three quantities, kept distinct} We separate (i) \emph{estimation error}, the deviation of
+an estimate from the exact noiseless value \emph{at the same parameters}; (ii) the
+\emph{optimisation gap} to a best-known ansatz reference; and (iii) the \emph{gap to the exact
+optimum}. This paper reports only (i). The ansatz reference in Table~\ref{tab:instances} is a
+multistart numerical best-known value over $60$ exact-statevector restarts, \textbf{not} a proven
+global optimum of the ansatz, and is labelled as such in the released configuration.
+
+\paragraph{Noise} Two static IBM calibration snapshots shipped with \code{qiskit-ibm-runtime}
+are used, chosen by measured error rates so that their dominant error channel differs:
+\code{dev\_lagos} (median readout error $0.169$, readout-dominated) and \code{dev\_algiers}
+(median readout error $0.011$, gate-dominated). Both are \code{cx}-native with at least seven qubits,
+which holds the folding primitive fixed. An \emph{ideal} (noiseless) condition is included as a
+reference. All execution is simulated with Qiskit Aer~\cite{javadiabhari2024qiskit}; \textbf{no
+quantum hardware was used}.
+
+\paragraph{Budget matching} Each estimate is allotted the same total shot budget $B$ regardless of
+method: the unmitigated arm spends $B$ on one circuit; ZNE spends $B/3$ at each of the scale factors
+$(1,3,5)$; REM spends $0.8B$ on the circuit and $0.2B$ across $2k$ calibration circuits; the
+composition splits $0.8B$ three ways plus calibration. The realised total is recorded per cell and
+asserted post hoc; the maximum relative deviation observed across the study was \BudgetMaxDev\%.
+Calibration policy is held fixed at per-estimate charging inside every comparison, so no comparison
+is confounded by a change of policy.
+
+\begin{table}[t]
+\caption{MaxCut instances. The reference is a multistart numerical best-known value, not a proven
+global ansatz optimum. ``Starts at best'' is the fraction of 60 restarts reaching it.}
+\label{tab:instances}
+\centering\small
+\input{tables/tab_instances}
+\end{table}
+
+\section{The defect and its detection}\label{sec:defect}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{../figures/fig0_pipeline}
+\caption{The budget-matched ZNE/REM pipeline and the two defect sites. Both are silent: the pipeline
+returns a well-formed circuit and a plausible expectation value.}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{Defect 1: folding discards the measurement map}
+Transpiling to a coupling map yields a layout $\pi$ such that classical bit $c$ records physical
+qubit $q_{\pi(c)}$. A folding routine that calls a strip-and-rebuild sequence---remove final
+measurements, fold the unitary, then apply a generic ``measure all''---reinstates $c \leftarrow q_c$.
+When $\pi$ is not the identity the returned circuit measures the wrong qubits into the wrong bits.
+
+\subsection{Defect 2: calibration indexed by virtual qubits}
+Readout mitigation estimates a per-qubit response matrix $A_q$ and inverts the tensor product
+$A=\bigotimes_q A_q$. If the calibration circuits prepare $|0\rangle/|1\rangle$ on \emph{virtual}
+qubit $i$ while bit $i$ of the measured string comes from physical qubit $q_{\pi(i)}$, then $A$ is
+inverted against the wrong qubits. On \code{dev\_algiers} with the realised layout, bit~2 was
+corrected using a response matrix with error rate $0.4638$ when the applicable rate was $0.0292$---a
+factor of $15.9$---and bit~4 with the reciprocal error.
+
+\subsection{An exact oracle}
+Both defects are detectable without any noise model. Global folding at an odd scale factor
+$2k{+}1$ implements $U (U^{\dagger} U)^{k} = U$, so the \emph{ideal} output distribution must be
+\emph{identical} to that of the unfolded circuit. Any difference is a bug. Using a four-qubit circuit
+whose ideal outcome is the single bitstring \code{0101} on a line coupling map:
+
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\code{initial\_layout} & defective, scale 3 & correct \\
+\midrule
+\code{[0,1,2,3]} & \code{0101} & \code{0101} \\
+\code{[3,2,1,0]} & \code{1010} & \code{0101} \\
+\code{[1,3,0,2]} & \code{0011} & \code{0101} \\
+\code{[2,0,3,1]} & \code{1100} & \code{0101} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The identity layout hides the defect entirely, which is why it survives casual testing.
+Our released test suite additionally checks invariance of exact noiseless
+$\langle Z_q\rangle$ under folding, operator-level equivalence of the folded core, preservation of
+classical register structure and of the measurement map, and alignment of calibration circuits with
+the physical qubits each bit reads.
+
+\subsection{What folding does and does not amplify}
+For completeness we verify by exact density-matrix computation that gate folding amplifies gate
+noise ($\langle ZZ\rangle = 0.990000, 0.970299, 0.950990$ at scales $1,3,5$ under depolarising gate
+noise) while leaving readout noise \emph{exactly} invariant ($1.000000$ at all three scales). This
+confirms rather than discovers the point made in~\cite{majumdar2023}. We also record realised gate
+counts per scale in every run: at odd scales the error-carrying gates (\code{cx}, \code{sx},
+\code{x}) fold a whole number of times, while \code{rz} --- which is error-free in these
+noise models --- does not, so a gate-count ratio alone is necessary but not sufficient evidence of
+uniform effective noise scaling.
+
+\section{Impact on benchmark conclusions}\label{sec:impact}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{../figures/fig1_implementation_impact}
+\caption{Effect of the defect, paired on identical seeds and configurations.
+(a) Per-cell estimation error under the defective versus corrected implementation; points off the
+diagonal are cells where the defect changed the answer. (b) Mean absolute disagreement with BCa
+bootstrap 95\% confidence intervals. (c) Fraction of cells in which the best-performing mitigation
+method changes. Simulator only.}
+\label{fig:impact}
+\end{figure*}
+
+\begin{table}[t]
+\caption{Family F1: paired disagreement between the defective and corrected implementations
+($B=6000$, six instances $\times$ 30 seeds). $D$ is the absolute difference in estimation error.
+$p_{\mathrm{BH}}$ is Benjamini--Hochberg adjusted within the six-test family.}
+\label{tab:f1}
+\centering\small
+\input{tables/tab_f1}
+\end{table}
+
+\begin{table}[t]
+\caption{Fraction of cells in which the best-performing mitigation method differs between the
+defective and corrected implementations.}
+\label{tab:flip}
+\centering\small
+\input{tables/tab_flip}
+\end{table}
+
+We ran identical configurations---same instances, same noise, same budget, same seeds---through the
+defective and the corrected implementation, and paired the results cell by cell. This isolates the
+defect from every other source of variation.
+
+Table~\ref{tab:f1} reports the paired disagreement. All six tests in the declared family are
+significant after Benjamini--Hochberg correction ($p_{\mathrm{BH}} \le \FONemaxP$), with mean
+absolute disagreement between \FONeminDis{} and \FONemaxDis{} in expected cut value. The signed mean
+differences are much smaller than the absolute ones: \textbf{the defect does not bias results in a
+consistent direction, it randomises them}, which is precisely why it is hard to notice.
+
+The practically important consequence is Table~\ref{tab:flip}: in \FlipRateAll\% of
+\FlipNAll{} (instance, noise, seed) cells, \textbf{the mitigation method that appears best is not the
+same under the two implementations}. A benchmark run on the defective pipeline would therefore
+recommend a different method than the same benchmark run correctly, in the majority of cells.
+
+\section{Corrected benchmark}\label{sec:corrected}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{../figures/fig2_method_comparison}
+\caption{Corrected budget-matched comparison. Every method spends the same total shots per estimate.
+Shaded bands are 95\% confidence intervals of the mean over six instances $\times$ 30 seeds.
+Simulator only.}
+\label{fig:corrected}
+\end{figure*}
+
+\begin{table*}[t]
+\caption{Family F2: each mitigated arm versus the unmitigated baseline at matched total shots, paired
+on (instance, seed). $\Delta$ is the mean paired difference in estimation error (negative favours the
+mitigated arm); $\Delta/C_{\max}$ expresses it in approximation-ratio units against the declared
+practical threshold of $0.01$. $p_{\mathrm{BH}}$ is adjusted within the \FTwoNTests-test family.}
+\label{tab:f2}
+\centering\small
+\input{tables/tab_f2}
+\end{table*}
+
+Table~\ref{tab:f2} and Fig.~\ref{fig:corrected} report the corrected comparison. Of the
+\FTwoNTests{} tests in family F2, \FTwoHelpsPM{} show a practically meaningful improvement over the
+unmitigated baseline, \FTwoHarmsPM{} a practically meaningful degradation, \FTwoBelowDelta{} a
+statistically resolvable effect that falls below the declared practical threshold, and
+\FTwoNoDiff{} no resolvable difference. We report effects as absolute differences with confidence
+intervals alongside the problem scale; we do not report ratios alone, because against a small
+baseline a large ratio can correspond to a negligible absolute effect.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{../figures/fig3_per_instance}
+\caption{Per-instance results at $B=6000$ (30 seeds per bar). Pooled means conceal substantial
+instance-to-instance heterogeneity. Simulator only.}
+\label{fig:instance}
+\end{figure*}
+
+\subsection{Cost accounting}
+\begin{table}[t]
+\caption{Realised cost per estimate by method, corrected implementation.}
+\label{tab:cost}
+\centering\small
+\input{tables/tab_cost}
+\end{table}
+
+\begin{table}[t]
+\caption{Total cost of the study. Offline scoring is exact (statevector) and therefore consumes no
+shots; the earlier frozen study charged $8{,}000{,}000$ shots for shot-based scoring and did not
+report them.}
+\label{tab:totalcost}
+\centering\small
+\input{tables/tab_totalcost}
+\end{table}
+
+Table~\ref{tab:cost} separates circuit shots from calibration shots and circuit executions from
+calibration executions. Shots are matched across methods; executions deliberately are not, because
+execution count is the cost the budget rule converts into fewer shots per execution.
+
+\section{Retraction of an affected result}\label{sec:retraction}
+This work began as a correction to our own earlier study, which had been frozen for independent
+review. Recomputing the realised layout for every condition of that study shows that the defect was
+active wherever the transpiler chose a non-identity layout: \textbf{$450$ of $2400$ estimation cells
+($18.8\%$) and $30$ of $40$ optimisation runs ($75\%$)} used affected code. The unmitigated arm never
+folds and never calibrates and is unaffected throughout; the ideal and parametric-noise conditions
+induced no layout and are likewise unaffected.
+
+The earlier study's headline---that the ranking of mitigation methods reverses between fixed-parameter
+estimation and in-loop optimisation---rested entirely on runs in the affected set. \textbf{We retract
+it.} We make no in-loop claim in this paper; a corrected in-loop experiment at adequate power is
+future work.
+
+\section{Threats to validity}\label{sec:threats}
+\textbf{Simulator only.} Aer device snapshots omit crosstalk, drift, leakage and non-Markovian
+effects; nothing here is a hardware result. \textbf{Scale.} Six qubits, $p=1$; mitigation's
+exponential cost~\cite{takagi2022,quek2024} is not probed. \textbf{Single implementations.} One
+folding style (global), one extrapolation family (Richardson), one readout-mitigation variant
+(tensored inversion with clipping); results do not characterise M3, twirled or learning-based
+readout mitigation, nor local folding. \textbf{Device family.} IBM \code{cx}-native superconducting
+snapshots only. \textbf{Generality of the defect.} We demonstrate it in one pipeline built on widely
+used components; we have not audited third-party libraries and do not claim they are affected.
+\textbf{Statistical scope.} The declared families F1 and F2 are FDR-controlled; anything else in this
+paper is exploratory. One arm (the composition) was declared under-powered at the practical threshold
+in advance.
+
+\section{Reproducibility and data availability}\label{sec:repro}
+All code, the prospectively fixed protocol, configurations, raw per-cell records, processed results
+and figure sources are in the project repository, together with the regression tests and pinned
+environment. Every number in this paper is generated from the raw data by the analysis scripts; no
+result is transcribed by hand. A traceability table maps each quantitative claim to a raw-data file,
+configuration, command and output table. The repository is currently private; we will make it public
+on acceptance, and we do not claim public availability before then.
+
+\section{Conclusion}
+Benchmarks of quantum error mitigation are software artifacts, and a mapping defect in the pipeline
+can change their conclusions without changing their appearance. The defect reported here is silent,
+present at all noise levels, and detectable by a test that needs no noise model at all: folding at an
+odd scale factor must leave the ideal distribution unchanged. On a complete benchmark it altered
+which method appeared best in \FlipRateAll\% of cells, and it invalidated the headline of an earlier
+frozen study, which we retract. We recommend that mitigation pipelines assert the measurement map
+after any circuit rewrite, and that readout calibration be indexed by the physical qubits the
+classical bits actually read.
+
+\section*{Use of AI assistance}
+The implementation, experiments, analysis and drafting of this manuscript were carried out with the
+assistance of an AI coding agent under author direction. All experimental results were produced by
+the released code and are reproducible from the released raw data. The authors take full
+responsibility for the content.
+
+\balance
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
