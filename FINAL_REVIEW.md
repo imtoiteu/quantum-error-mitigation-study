@@ -1,10 +1,10 @@
-# Final Internal Review
+# Final Internal Review (round 2)
 
-**Branch:** `review-fixes` · **Frozen snapshot preserved:** `main` @ `2fee260`
-**Scope:** five separate passes, run after the main study completed. Simulator-only throughout.
+**Branch:** `review-round2` · **Frozen v1 snapshot:** `main` @ `2fee260` (untouched)
+**Round-1 package:** `a5e3bc7` · **Date:** 2026-09-16 · **Simulator-only throughout.**
 
-This document records what was checked, what was found, what was fixed, and what remains
-**unresolved**. Items are not marked resolved unless there is evidence in the repository.
+Five passes. Nothing is marked resolved without evidence in the repository. Items that remain
+unresolved are listed in §6 and are not softened.
 
 ---
 
@@ -12,113 +12,104 @@ This document records what was checked, what was found, what was fixed, and what
 
 | Check | Result |
 |---|---|
-| Folding oracle ($UU^{\dagger}U=U$ leaves the ideal distribution invariant) | **PASS** — `tests/test_v2_correctness.py` T1, four layouts |
-| Exact noiseless $\langle Z_q\rangle$ invariant under folding | **PASS** — T2, 8 layout/parameter combinations |
-| Classical registers and measurement map preserved | **PASS** — T3 |
-| Calibration circuits target the physical qubit each clbit reads | **PASS** — T4 |
-| Folded core equals original core as an operator | **PASS** — T5 |
-| `optimization_level=0` does not cancel folded pairs | **PASS** — T6 |
-| Routing invariance of the measurement map across scales | **PASS** — verified separately; maps such as `(2,0,3,1)` identical at scales 1/3/5 |
-| Hamiltonian/objective construction | **PASS** — TFIM dense matrix matches `SparsePauliOp.to_matrix()`; $n{=}2$ ground energy equals $-\sqrt5$ by hand-diagonalisation; MaxCut optima confirmed by brute force |
-| Exact statevector scoring | **PASS** — reconciles the reviewer's independently recomputed QAOA gaps to 10 decimal places |
-| Instances pairwise non-isomorphic | **PASS** — `networkx.is_isomorphic`; one earlier candidate was isomorphic to `k33` and was replaced |
-| Seed hierarchy free of collisions | **PASS** — 64 distinct simulator seeds over 64 (run, eval) pairs; the v1 collision no longer occurs |
+| Oracle A: odd-scale folding preserves the **exact** ideal probability vector | **PASS** — exact statevector comparison, four layouts, scales 3/5 |
+| Clifford folding exact to the last bit | **PASS** — max\|dp\| = 0.0 at scales 3, 5, 9 |
+| Rotation circuits: deviation characterised, not assumed | **PASS** — constant 1.04e-11 across scales 3/5/9 ⇒ floating-point angle representation, not accumulation. Tolerance justified by measurement |
+| Operator-level equivalence of the folded core | **PASS** |
+| Classical registers and measurement map preserved | **PASS** |
+| Oracle B: REM indexing with **unequal** response matrices | **PASS** — aligned ~1e-16; misindexed up to 1.8e-1 |
+| **Oracle A is blind to the calibration defect at p=0** | **PASS, asserted as a test** — the two oracles are not interchangeable |
+| Readout channel actually applied | **PASS (was FAIL)** — 0.810000 = $(1-2p)^2$, previously a vacuous 1.000000 |
+| Seed streams respond to every factor | **PASS** — 0 collisions over the realised coordinate set |
+| Positive control vs `mthree` used as documented | **PASS** — agrees on all layouts, both exact to ~1e-16 |
 
-**Found and fixed during this pass:** `make_tables.py` had its `__main__` block before the
-`macros()` definition (`NameError`); a scripted manuscript edit silently matched nothing because
-`str.replace` is a no-op on a miss — all scripted edits now assert their anchor before writing.
+**Found and fixed in this pass:** the readout audit computed on a circuit with the measurements
+removed; the "exact" folding test estimated from 40,000 sampled shots; seed coordinates missing five
+factors.
 
 ## Pass 2 — Experimental validity
 
 | Check | Result |
 |---|---|
-| Realised total shots equal across methods within each cell | **PASS** — maximum relative deviation reported in `results/v2/processed/budget_match_check.csv` and quoted in the paper |
-| Calibration policy constant within every comparison | **PASS** — fixed at `per_estimate`; v1's stage-dependent policy change was the confound and is gone |
-| Pairing on (instance, seed) rather than unpaired group means | **PASS** — `analyze_main.py` |
-| Multiplicity control over declared families | **PASS** — BH FDR within F1 (6 tests) and F2 (27 tests); everything else labelled exploratory |
-| CI overlap not used as a decision rule | **PASS** — Wilcoxon signed-rank primary, paired *t* secondary, BCa bootstrap CIs for effect sizes |
-| Absolute effects reported with problem scale | **PASS** — every ratio accompanied by absolute difference and $\Delta/C_{\max}$ against the declared threshold |
-| Baselines and ablations | Unmitigated baseline; ideal-noise reference; two contrasting noise regimes; legacy-vs-corrected ablation |
-| Cost accounting complete | **PASS** — circuit, calibration, executions, wall-clock; offline scoring is exact and costs zero shots |
-| No cells excluded on outcome | **PASS** — full grid executed; no exclusions |
-
-**Weakness acknowledged, not fixed:** the composition arm was declared under-powered at the
-practical threshold *in advance* (protocol §5) and remains so.
+| Realised total shots equal across methods | **PASS** — maximum relative deviation reported per budget |
+| Calibration policy constant within comparisons | **PASS** |
+| Pairing contract explicit and justified | **PASS** — `impl` excluded on purpose (common random numbers); every other factor independent |
+| Fresh data independent of round 1 | **PASS** — new namespace, verified to produce different values for the same cell |
+| Normalisation before averaging | **PASS** — per-instance $C_{\max}$ |
+| Dependence respected | **PASS** — stratified bootstrap within six fixed instances; cluster bootstrap reported as the weaker generalisation interval |
+| Bias and variance separated from differences of absolute errors | **PASS** |
+| Winner scope named; near ties quantified | **PASS** |
+| Decision regret uses an independent sample | **PASS** — replicate 0 selects, replicate 1 pays |
+| No outcome-dependent exclusions | **PASS** — full grid, no cell dropped |
 
 ## Pass 3 — Claim audit
 
-**Claims withdrawn during this work** (each was believed novel before the full texts were read):
+**Withdrawn in round 2** (in addition to the seven withdrawn in round 1):
 
-| Withdrawn claim | Why | Prior art |
-|---|---|---|
-| Odd scale factors avoid partial folds | Already established | Majumdar *et al.*, IEEE QCE 2023, §II and Fig. 4 |
-| Folding does not amplify SPAM/readout error | Already stated verbatim | Majumdar *et al.*, §V |
-| Circuits should be transpiled before amplification | Already established | Majumdar *et al.*, §II ("Transpile first") |
-| Shot budget governs which method wins | Already established | Bultrini *et al.*, Quantum 7, 1034 (2023) |
-| Accuracy gains need not improve downstream decisions | Already claimed | Scavino, arXiv:2607.02888 |
-| ZNE can show spurious apparent improvement | Already published | Köster & Mauerer, arXiv:2607.09360 (accepted, IEEE QCE 2026) |
-| "Estimation-vs-optimisation ranking reversal" (v1 headline) | 75% of supporting runs used defective code | — **retracted** |
+| Withdrawn | Why |
+|---|---|
+| Round-1 "fresh independent confirmation" | 224/224 pilot rows bit-identical to main-study rows |
+| "randomises rather than biases" | Our own data: \|signed\|/\|D\| = 0.98 and 0.99 for two arms |
+| "at every depth, noise level and shot count" | Two explicit invisibility conditions now asserted as tests |
+| Folding leaves readout noise "exactly invariant" at 1.0 | Vacuous computation; corrected to constant attenuation at 0.81 |
+| "best attainable error" / "true regret" | Same-sample minima; replaced by split-sample regret |
+| "retraction" framing | It was an unpublished internal pilot; now a short pilot-correction subsection |
+| Physical-qubit-aware calibration as a novel insight | Established practice; `mthree` ships `final_measurement_mapping` |
+| IEEE TQE as a natural easier fallback | Asserted without evidence in round 1; demoted |
 
-**Claims retained**, each with evidence in `CLAIM_EVIDENCE.csv`: the two measurement-mapping defects
-and their regression tests; the quantified disagreement and best-method flip rate; the regret of
-following the defective recommendation; the corrected budget-matched comparison; the 18.8%/75%
-impact on the frozen study.
+**Retained**, each traced in `CLAIM_EVIDENCE.csv`: the two integration defects and their oracles;
+the demonstrated non-interchangeability of the oracles; the measured implementation contrast with
+instance-aware intervals; split-sample regret; the positive control.
 
-**Distinction from the closest related work is stated explicitly** in the paper (§II): Köster &
-Mauerer's artefact is a statistical-regime collapse in a *correct* implementation; ours is a
-correctness defect present at any depth and signal level.
-
-**No mechanism claim is made.** The v1 "order-preservation" explanation was removed rather than
-softened, because it was never tested.
+**Contribution is stated as bounded** in the abstract and introduction: an integration-failure case
+study plus a reusable validation artifact — explicitly *not* the discovery of an unknown hazard.
 
 ## Pass 4 — Reproducibility
 
 | Check | Result |
 |---|---|
-| Clean-room install from `requirements.txt` in a fresh venv | **PASS** — fresh `python3 -m venv`, installed from `requirements.txt` only (`logs/v2/cleanroom.log`) |
-| `pip check` dependency consistency | **PASS** — "No broken requirements found." |
-| Regression tests pass in the clean room | **PASS** — full suite green under the clean-room interpreter |
-| All tables/figures regenerate from archived raw data | **PASS** — `analyze_main.py` → `make_tables.py` → `pdflatex`; no hand-entered numbers |
-| Every inline number traceable | **PASS** — `tables/macros.tex` generated; `CLAIM_EVIDENCE.csv` maps claim → data → config → command → output |
-| Determinism | **PASS** — named `SeedSequence` hierarchy; static calibration snapshots pinned by package version, not live device queries |
-| `ply` pinned | **PASS** — missing from v1 requirements; without it the ZNE arm cannot run at all |
+| Clean-room install from `requirements.txt` | **PASS** (round 1, unchanged) — fresh venv, `pip check` clean, tests green |
+| Fresh run launched from a clean committed tree | **PASS** — commit `c228cf4`, `git status` empty at launch |
+| Execution-path content hashes recorded per row | **PASS** — 8 files hashed into every round-2 row |
+| Round-1 provenance reconstructed, not relabelled | **PASS** — config hash still matches; all execution-path files byte-identical between `414fa51` and `830ebdc`; `git_dirty=True` stands |
+| Tables and figures regenerate from archived raw data | **PASS** |
+| No number typed by hand | **PASS** — all inline values via generated `macros.tex` |
+| Determinism | **PASS** — named coordinate hierarchy, static calibration snapshots |
 
 ## Pass 5 — Presentation
 
-Checked by rendering the PDF to images and inspecting each page, not by reading the log.
+Checked by rendering the PDF to images and inspecting each page.
 
-**Found and fixed:** Table V exceeded the column width and its values collided into Table VI
-(promoted to a full-width `table*`); the title ran to four lines; budget `1500` rendered as "1k";
-a figure legend sat on top of the data cloud; the abstract claimed "We release …" while §IX
-correctly states the repository is private (a data-availability misstatement).
+**Found and fixed:** pipeline-diagram box overflow and an overlapping annotation; the diagram still
+carried the prohibited phrase "a bug, at any noise level", now replaced by the two-oracle statement;
+document class corrected to `[10pt,conference]` per the IEEE requirement.
 
 ---
 
-## Unresolved issues
+## 6. Unresolved issues
 
-1. **Literature search is bounded.** arXiv's API was rate-limited from this host, so no systematic
-   arXiv sweep and no forward-citation analysis of Bultrini/Majumdar was performed. All
-   "not previously studied" statements are bounded accordingly (`docs/novelty-matrix.md` §6).
-2. **arXiv:2608.28535 full text not assessed.** If it contains a matched-budget ZNE-vs-REM
-   comparison on QAOA, the secondary contribution weakens to a replication. The defect finding is
-   unaffected.
-3. **No in-loop (optimisation) result.** Out of scope at this compute budget; the paper claims nothing about it.
-4. **Simulator-only, 6 qubits, $p=1$, IBM `cx`-native snapshots, one REM variant, global folding,
-   Richardson only.** None of these are varied.
-5. **Third-party libraries not audited.** We demonstrate the defect in one pipeline built on widely
-   used components; we do **not** claim any released library is affected.
-6. **Venue facts unverified** — deadline, page limit, fees, review model all recorded as UNKNOWN in
-   `docs/venue-decision.md` and listed in `AUTHOR_ACTIONS.md`.
+1. **No target edition has an open call.** IEEE QCE 2026 closed 27 April 2026 and is running
+   13–18 September 2026; IEEE QSW 2026 closed 22 March 2026; neither 2027 call is published.
+   Page limit, template, deadline, review model and fees for any submittable edition are **UNKNOWN**.
+   The manuscript was deliberately **not** padded to the closed edition's 8–10 page window.
+2. **In-person attendance was mandatory at QCE 2026.** If that carries to 2027 and the author cannot
+   travel, the venue decision changes materially. This is the most consequential author decision.
+3. **Round-1 data cannot be repaired.** It is a single exploratory campaign with correlated streams
+   and a dirty tree. No claim rests on it.
+4. **Literature search remains bounded** — arXiv's API stayed rate-limited from this host, so no
+   systematic sweep or forward-citation analysis was performed.
+5. **Scope.** Six fixed instances, two device snapshots, $p=1$, six qubits, one REM variant, global
+   folding, Richardson only. Generalisation is indicated only by the wider cluster interval.
+6. **Third-party libraries not audited.** The positive control indicates `mthree` used as documented
+   is unaffected; we make no claim about any other library.
 7. **No DOCX** — `pandoc` is absent from this environment.
 
-## Publication-readiness assessment
+## 7. Publication-readiness assessment
 
-The manuscript is **complete, internally consistent, and evidence-backed**, and the contribution is
-**bounded and honestly scoped**: an implementation-correctness finding with regression tests and a
-quantified impact, plus a corrected benchmark. It is *not* a new-method paper and does not claim to be.
-
-**Publication readiness: plausible but unresolved.** The evidence supports the claims made, and the
-contribution type has a demonstrated precedent at the target venue (Köster & Mauerer, IEEE QCE 2026).
-Whether reviewers judge a correctness-and-replication result sufficiently novel is a judgement this
-internal review cannot make, and the bounded literature search (item 1) is the single largest
-residual risk. We do not assert acceptance probability.
+**Unresolved, and more modestly so than in round 1.** The evidence now supports every claim made,
+the artifact is reproducible from a clean environment, and the framing matches what the work actually
+establishes. But the contribution is deliberately small: the hazard is documented, the standard
+tooling already solves it, and the value rests on the validation oracles and the measured downstream
+effect. Whether that clears the bar at a software-engineering venue is a judgement this process
+cannot make, and **there is currently no open call to submit to**, which is a practical blocker
+independent of merit.
