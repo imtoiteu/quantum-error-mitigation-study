@@ -3,6 +3,11 @@ cycle6,dev_algiers,rem,zne_rem,True,rem,zne_rem,True
 cycle6,dev_lagos,zne_rem,rem,True,zne_rem,rem,True
 k33,dev_algiers,rem,zne,True,rem,zne,True
 k33,dev_lagos,rem,zne,True,rem,zne,True
+octahedron,dev_algiers,rem,zne,True,rem,zne,True
 octahedron,dev_lagos,zne_rem,zne,True,zne_rem,zne,True
+path6,dev_algiers,rem,zne_rem,True,rem,zne_rem,True
+path6,dev_lagos,zne_rem,rem,True,zne_rem,rem,True
 prism,dev_algiers,rem,zne_rem,True,rem,zne_rem,True
 prism,dev_lagos,zne_rem,zne_rem,False,zne_rem,zne_rem,False
+wheel5,dev_algiers,zne,zne_rem,True,zne,zne_rem,True
+wheel5,dev_lagos,rem,zne,True,rem,zne,True

@@ -60,7 +60,14 @@ def macros():
     s=pd.read_csv(PROC/"R2_winner_summary.csv"); allr=s[s.noise=="ALL"].iloc[0]
     pr=pd.read_csv(PROC/"R2_per_instance_rankings.csv")
     tot=json.loads((PROC/"R2_cost.json").read_text())
-    L=[]; m=lambda k,v: L.append(f"\\newcommand{{\\{k}}}{{{v}}}")
+    L=[]
+    def m(k, v):
+        # LaTeX command names may contain ONLY letters. A digit silently ends the
+        # command name and leaks the rest as stray text in the preamble, which
+        # surfaces as "Missing \\begin{document}". Guard against it.
+        if not k.isalpha():
+            raise ValueError(f"macro name {k!r} must be letters only (LaTeX restriction)")
+        L.append(f"\\newcommand{{\\{k}}}{{{v}}}")
     m("FONeminDis", f"{f.mean_absolute_d_abs_norm.min():.3f}")
     m("FONemaxDis", f"{f.mean_absolute_d_abs_norm.max():.3f}")
     m("DirectionalityMax", f"{f.directionality.max():.2f}")
@@ -69,8 +76,8 @@ def macros():
     m("FlipRateInclUnmitPct", f"{100*allr.flip_rate_incl_unmitigated:.1f}")
     m("NearTiePct", f"{100*allr.near_tie_rate_lt_1pct:.1f}")
     m("WinnerScope", "the three mitigated methods")
-    m("SplitRegretLegacy", f"{allr.split_regret_legacy:.4f}")
-    m("SplitRegretV2", f"{allr.split_regret_v2:.4f}")
+    m("SplitRegretDefective", f"{allr.split_regret_legacy:.4f}")
+    m("SplitRegretCorrected", f"{allr.split_regret_v2:.4f}")
     m("SplitRegretExcess", f"{allr.excess_regret_from_defect:.4f}")
     m("PerInstChanged", f"{int(pr.changed3.sum())}"); m("PerInstTotal", f"{len(pr)}")
     m("BudgetMaxDev", f"{tot['budget_max_rel_dev_pct']:.4f}")

@@ -36,6 +36,11 @@ V.~Russo, A.~Mari, N.~Shammah, R.~LaRose, and W.~J. Zeng, ``Testing
   platform-independent quantum error mitigation on noisy quantum computers,''
   \emph{IEEE Transactions on Quantum Engineering}, vol.~4, pp. 1--18, 2023.
 
+\bibitem{nation2021}
+P.~D. Nation, H.~Kang, N.~Sundaresan, and J.~M. Gambetta, ``Scalable mitigation
+  of measurement errors on quantum computers,'' \emph{PRX Quantum}, vol.~2,
+  no.~4, p. 040326, 2021.
+
 \bibitem{majumdar2023}
 R.~Majumdar, P.~Rivero, F.~Metz, A.~Hasan, and D.~S. Wang, ``Best practices for
   quantum error mitigation with digital zero-noise extrapolation,'' in
@@ -46,6 +51,11 @@ R.~Majumdar, P.~Rivero, F.~Metz, A.~Hasan, and D.~S. Wang, ``Best practices for
 V.~Scavino, ``Decision kernels for quantum error mitigation: Why accuracy gains
   need not improve downstream decisions,'' 2026, arXiv preprint; no
   peer-reviewed venue located as of 2026-09-16.
+
+\bibitem{koester2026}
+D.~K\"oster and W.~Mauerer, ``Benchmarking error mitigation: Artefactual
+  improvements in zero-noise extrapolation,'' 2026, arXiv:2607.09360v2;
+  accepted for publication at IEEE Quantum Week (QCE) 2026.
 
 \bibitem{temme2017}
 K.~Temme, S.~Bravyi, and J.~M. Gambetta, ``Error mitigation for short-depth
@@ -75,11 +85,6 @@ S.~Bravyi, S.~Sheldon, A.~Kandala, D.~C. McKay, and J.~M. Gambetta,
   ``Mitigating measurement errors in multiqubit experiments,'' \emph{Physical
   Review A}, vol. 103, no.~4, p. 042605, 2021.
 
-\bibitem{nation2021}
-P.~D. Nation, H.~Kang, N.~Sundaresan, and J.~M. Gambetta, ``Scalable mitigation
-  of measurement errors on quantum computers,'' \emph{PRX Quantum}, vol.~2,
-  no.~4, p. 040326, 2021.
-
 \bibitem{takagi2022}
 R.~Takagi, S.~Endo, S.~Minagawa, and M.~Gu, ``Fundamental limits of quantum
   error mitigation,'' \emph{npj Quantum Information}, vol.~8, no.~1, p. 114,
@@ -89,11 +94,6 @@ R.~Takagi, S.~Endo, S.~Minagawa, and M.~Gu, ``Fundamental limits of quantum
 Y.~Quek, D.~Stilck~Fran\c{c}a, S.~Khatri, J.~J. Meyer, and J.~Eisert,
   ``Exponentially tighter bounds on limitations of quantum error mitigation,''
   \emph{Nature Physics}, vol.~20, pp. 1648--1658, 2024.
-
-\bibitem{koester2026}
-D.~K\"oster and W.~Mauerer, ``Benchmarking error mitigation: Artefactual
-  improvements in zero-noise extrapolation,'' 2026, arXiv:2607.09360v2;
-  accepted for publication at IEEE Quantum Week (QCE) 2026.
 
 \bibitem{farhi2014qaoa}
 E.~Farhi, J.~Goldstone, and S.~Gutmann, ``A quantum approximate optimization

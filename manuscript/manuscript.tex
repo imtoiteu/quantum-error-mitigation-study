@@ -17,8 +17,8 @@
 
 \begin{document}
 
-\title{Two Integration Defects in a Zero-Noise-Extrapolation\\
-Pipeline, and Sampling-Free Oracles that Catch Them}
+\title{Sampling-Free Oracles for Integration Defects\\
+in Quantum Error-Mitigation Pipelines}
 
 \author{\IEEEauthorblockN{Author name withheld for review}
 \IEEEauthorblockA{Affiliation withheld for review\\
@@ -41,9 +41,12 @@ sampling-free oracles, and show they are not interchangeable: the folding oracle
 defect, because at zero readout noise every response matrix is the identity. On a QAOA MaxCut
 benchmark over six fixed instances and two device calibration snapshots, run from a fresh seed
 namespace with paired common random numbers, the defective and corrected implementations differ by
-\FONeminDis--\FONemaxDis{} of $C_{\max}$, and the method selected as best changes in
-\FlipRateAllPct\% of cells among \WinnerScope. Selecting on one evaluation sample and paying on an
-independent one, the defect costs \SplitRegretExcess{} of $C_{\max}$ in excess regret. We verify
+\FONeminDis--\FONemaxDis{} of $C_{\max}$ depending on the arm (one arm is unaffected), and the
+method selected as best changes in \FlipRateAllPct\% of cells among \WinnerScope. That rate
+overstates the substantive effect: \NearTiePct\% of cells are near ties. Selecting on one
+evaluation sample and paying on an independent one, the defect costs \SplitRegretExcess{} of
+$C_{\max}$ in excess regret --- small in absolute terms, and concentrated on the gate-dominated
+snapshot. We verify
 against the standard library used as documented: it agrees with our corrected implementation
 exactly, and we make no claim that any released library is defective. All results are
 simulator-only and we make no claim of quantum advantage.
@@ -256,27 +259,32 @@ sampling model and is applied only after the estimand and dependence structure a
 \input{tables/tab_f1}
 \end{table*}
 
-\begin{table}[t]
-\caption{Estimator bias and sampling variance reported \emph{separately} from differences of absolute
-errors, normalised by $C_{\max}$.}
+\begin{table*}[t]
+\caption{Estimator bias and sampling variance, reported \emph{separately} from differences of
+absolute errors and normalised by $C_{\max}$. Note that on \code{dev\_algiers} the defective
+implementation gives ZNE a large \emph{positive} bias where the corrected one is near zero --- a
+one-directional shift, not a symmetric scatter.}
 \label{tab:bv}
-\centering\footnotesize
+\centering\small
 \input{tables/tab_bv}
-\end{table}
+\end{table*}
 
 Table~\ref{tab:f1} reports the contrast. The shift is \textbf{not} direction-free: directionality
 exceeds \DirectionalityMax{} for the largest arms, so the defect moves those estimates
 predominantly one way. Table~\ref{tab:bv} separates estimator bias from sampling variance, which
 Table~\ref{tab:f1} deliberately does not conflate.
 
-\begin{table}[t]
-\caption{Method selection. \emph{Scope} names the candidate set. \emph{Near-tie rate} is the fraction
-of cells whose best and second-best candidates differ by less than $0.01\,C_{\max}$.
-\emph{Split-sample regret} selects on one evaluation replicate and pays on an independent one.}
+\begin{table*}[t]
+\caption{Method selection. Two candidate scopes are reported: the three mitigated methods, and the
+same set with the unmitigated option added. \emph{Near-tie} is the fraction of cells whose best and
+second-best candidates differ by less than $0.01\,C_{\max}$ --- it is large, so a changed winner
+often reflects a near-tie rather than a substantive ranking change. \emph{Split-sample regret}
+selects the method on one evaluation replicate and measures the consequence on an independent one;
+the same-sample minimum is never described as ``best attainable''.}
 \label{tab:winner}
-\centering\footnotesize
+\centering\small
 \input{tables/tab_winner}
-\end{table}
+\end{table*}
 
 \begin{figure*}[t]
 \centering

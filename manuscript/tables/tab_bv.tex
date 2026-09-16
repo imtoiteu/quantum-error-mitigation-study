@@ -1,0 +1,20 @@
+\begin{tabular}{@{}lllrlrr@{}}
+\toprule
+Noise & Method & Impl. & bias & 95\% CI & sd & RMSE\\
+\midrule
+\texttt{dev\_algiers} & unmitigated & v2 & -0.0297 & [-0.0300, -0.0294] & 0.0021 & 0.0299\\
+\texttt{dev\_algiers} & REM & legacy & -0.0241 & [-0.0246, -0.0237] & 0.0032 & 0.0245\\
+\texttt{dev\_algiers} & REM & v2 & -0.0240 & [-0.0245, -0.0236] & 0.0033 & 0.0244\\
+\texttt{dev\_algiers} & ZNE & legacy & +0.0714 & [+0.0691, +0.0737] & 0.0165 & 0.0842\\
+\texttt{dev\_algiers} & ZNE & v2 & -0.0064 & [-0.0078, -0.0050] & 0.0096 & 0.0116\\
+\texttt{dev\_algiers} & ZNE+REM & legacy & +0.0807 & [+0.0781, +0.0835] & 0.0188 & 0.0947\\
+\texttt{dev\_algiers} & ZNE+REM & v2 & -0.0011 & [-0.0026, +0.0004] & 0.0106 & 0.0105\\
+\texttt{dev\_lagos} & unmitigated & v2 & -0.1467 & [-0.1471, -0.1463] & 0.0030 & 0.1494\\
+\texttt{dev\_lagos} & REM & legacy & -0.0953 & [-0.1033, -0.0878] & 0.0533 & 0.1107\\
+\texttt{dev\_lagos} & REM & v2 & -0.1330 & [-0.1385, -0.1279] & 0.0365 & 0.1393\\
+\texttt{dev\_lagos} & ZNE & legacy & -0.1092 & [-0.1107, -0.1076] & 0.0109 & 0.1110\\
+\texttt{dev\_lagos} & ZNE & v2 & -0.1303 & [-0.1317, -0.1288] & 0.0101 & 0.1344\\
+\texttt{dev\_lagos} & ZNE+REM & legacy & -0.0644 & [-0.0785, -0.0511] & 0.0953 & 0.1153\\
+\texttt{dev\_lagos} & ZNE+REM & v2 & -0.1373 & [-0.1466, -0.1282] & 0.0636 & 0.1532\\
+\bottomrule
+\end{tabular}

@@ -29,3 +29,25 @@ total cells 5040, already done 0, to run 5040
   2800/5040   5708.1s  eta  4566.5s  rss 0.39GB
   2900/5040   5854.1s  eta  4319.9s  rss 0.39GB
   3000/5040   6040.9s  eta  4107.8s  rss 0.39GB
+  3100/5040   6497.2s  eta  4066.0s  rss 0.39GB
+  3200/5040   6869.6s  eta  3950.0s  rss 0.39GB
+  3300/5040   7284.7s  eta  3841.0s  rss 0.39GB
+  3400/5040   7617.6s  eta  3674.4s  rss 0.39GB
+  3500/5040   7716.0s  eta  3395.0s  rss 0.39GB
+  3600/5040   7800.2s  eta  3120.1s  rss 0.39GB
+  3700/5040   7904.5s  eta  2862.7s  rss 0.39GB
+  3800/5040   8063.7s  eta  2631.3s  rss 0.39GB
+  3900/5040   8371.4s  eta  2447.0s  rss 0.39GB
+  4000/5040   8731.3s  eta  2270.1s  rss 0.39GB
+  4100/5040   9076.8s  eta  2081.0s  rss 0.39GB
+  4200/5040   9460.8s  eta  1892.2s  rss 0.39GB
+  4300/5040   9544.7s  eta  1642.6s  rss 0.39GB
+  4400/5040   9676.8s  eta  1407.5s  rss 0.39GB
+  4500/5040   9753.4s  eta  1170.4s  rss 0.39GB
+  4600/5040   9890.0s  eta   946.0s  rss 0.39GB
+  4700/5040  10104.5s  eta   731.0s  rss 0.39GB
+  4800/5040  10443.2s  eta   522.2s  rss 0.39GB
+  4900/5040  10699.6s  eta   305.7s  rss 0.39GB
+  5000/5040  11039.4s  eta    88.3s  rss 0.39GB
+  5040/5040  11187.4s  eta     0.0s  rss 0.39GB
+batch done in 11187.4s -> /root/imtoiteu/quantum-error-mitigation-study/results/v2r2/raw/confirm.jsonl
