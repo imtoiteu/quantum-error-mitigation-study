@@ -1,5 +1,6 @@
 # MAIN STUDY - frozen 2026-09-16 before any main-study data. See docs/main-study-protocol.md
 study: main_v2
+seed_namespace: v2_main_2026_09_16   # RETIRED namespace (original run)
 p: 1
 instances: [prism, cycle6, k33, octahedron, path6, wheel5]
 noise:

@@ -24,6 +24,27 @@ from qemstudy.v2.scoring import exact_cut_value                       # noqa: E4
 from qemstudy.noise import NoiseSpec                                  # noqa: E402
 
 
+EXEC_PATH_FILES = [
+    "src/qemstudy/v2/runner.py", "src/qemstudy/v2/circuits.py", "src/qemstudy/v2/rem.py",
+    "src/qemstudy/v2/seeding.py", "src/qemstudy/v2/instances.py", "src/qemstudy/v2/scoring.py",
+    "src/qemstudy/noise.py", "experiments/v2/run_study.py",
+]
+
+
+def exec_path_hashes() -> dict:
+    """Content hash of every file that participates in generating a data row.
+
+    ROUND-2 (review finding 8): the earlier run recorded git_dirty=True with no way
+    to tell which code actually executed. Content hashes make the executed version
+    identifiable regardless of working-tree state.
+    """
+    out = {}
+    for rel in EXEC_PATH_FILES:
+        f = ROOT / rel
+        out[rel] = hashlib.sha256(f.read_bytes()).hexdigest()[:16] if f.exists() else None
+    return out
+
+
 def provenance(cfg_path: pathlib.Path) -> dict:
     try:
         commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT).decode().strip()
@@ -32,6 +53,7 @@ def provenance(cfg_path: pathlib.Path) -> dict:
         commit, dirty = "unknown", True
     import qiskit, qiskit_aer, mitiq
     return {"git_commit": commit, "git_dirty": dirty,
+            "exec_path_sha256": exec_path_hashes(),
             "config_sha256": hashlib.sha256(cfg_path.read_bytes()).hexdigest(),
             "host": platform.node(), "python": platform.python_version(),
             "qiskit": qiskit.__version__, "qiskit_aer": qiskit_aer.__version__,
@@ -39,8 +61,8 @@ def provenance(cfg_path: pathlib.Path) -> dict:
 
 
 def cell_key(c) -> str:
-    return "|".join(str(c[k]) for k in
-                    ("instance", "noise", "method", "budget", "seed", "impl"))
+    return "|".join(str(c.get(k, 0)) for k in
+                    ("instance", "noise", "method", "budget", "seed", "impl", "eval_id"))
 
 
 def main():
@@ -51,6 +73,8 @@ def main():
 
     cfg_path = ROOT / args.config
     cfg = yaml.safe_load(cfg_path.read_text())
+    if "seed_namespace" not in cfg:
+        raise SystemExit("config must declare seed_namespace (see src/qemstudy/v2/seeding.py)")
     refs = json.loads((ROOT / "configs" / "v2" / "references.json").read_text())
     out_path = ROOT / cfg["output"]
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -64,15 +88,16 @@ def main():
     prov = provenance(cfg_path)
 
     jobs = []
-    for inst, nz, meth, bud, seed, impl in itertools.product(
+    n_rep = int(cfg.get("eval_replicates", 1))
+    for inst, nz, meth, bud, seed, impl, ev in itertools.product(
             cfg["instances"], cfg["noise"], cfg["methods"],
-            cfg["budgets"], cfg["seeds"], cfg["impls"]):
+            cfg["budgets"], cfg["seeds"], cfg["impls"], range(n_rep)):
         if impl == "legacy":
             if meth == "none" or bud != cfg["legacy_budget"] or nz["kind"] != "device":
                 continue                      # legacy arm only where the defect can act
         jobs.append(dict(instance=inst, noise=nz["name"], noise_kind=nz["kind"],
                          lam=nz.get("lam", 1.0), method=meth, budget=bud,
-                         seed=seed, impl=impl))
+                         seed=seed, impl=impl, eval_id=ev))
     todo = [j for j in jobs if cell_key(j) not in done]
     print(f"total cells {len(jobs)}, already done {len(jobs)-len(todo)}, to run {len(todo)}", flush=True)
     if args.limit:
@@ -88,14 +113,17 @@ def main():
             circ = I.measured_circuits(params)
             comb = lambda v, I=I: I.cut_from_counts(v["z"])
             ns = NoiseSpec(j["noise"], j["noise_kind"], j["lam"])
-            ex = Executor(ns, I.n, run_id=j["seed"])
+            ex = Executor(ns, I.n, run_id=j["seed"],
+                          namespace=cfg["seed_namespace"],
+                          cell=dict(instance=j["instance"], noise=j["noise"],
+                                    method=j["method"], budget=j["budget"], seed=j["seed"]))
             val, detail, _ = estimate(
                 ex, circ, comb, j["method"], j["budget"],
-                eval_id=0, scales=tuple(cfg["scales"]), fit=cfg["fit"],
+                eval_id=j.get("eval_id", 0), scales=tuple(cfg["scales"]), fit=cfg["fit"],
                 cal_fraction=cfg["cal_fraction"], clip=cfg["rem_clip"],
                 legacy_mapping=(j["impl"] == "legacy"))
             exact_at_params = exact_cut_value(I, params)
-            row = {**j, **prov,
+            row = {**j, **prov, "seed_namespace": cfg["seed_namespace"],
                    "value": val,
                    "exact_noiseless_at_params": exact_at_params,
                    "ansatz_reference_best_known": r["ansatz_reference_best_known"],

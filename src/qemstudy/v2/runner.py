@@ -29,7 +29,7 @@ from ..noise import NoiseSpec
 from .circuits import (prepare, fold_preserving_measurements, to_basis,
                        calibration_circuits, legacy_fold, legacy_calibration_circuits)
 from .rem import build_confusion, apply_rem
-from .seeding import int_seed
+from .seeding import int_seed, coords_from
 
 ODD_SCALES = (1.0, 3.0, 5.0)
 FACTORIES = {"richardson": RichardsonFactory, "linear": LinearFactory, "exp": ExpFactory}
@@ -56,10 +56,19 @@ class Cost:
 
 @dataclass
 class Executor:
+    """Executes one cell. `cell` carries the full coordinate identity of that cell.
+
+    ROUND-2 (review finding 2): every stream is now derived from the complete cell
+    identity (instance, noise, method, budget, seed, eval, basis, scale) within a
+    named campaign namespace. `impl` is deliberately excluded -- see the pairing
+    contract in seeding.py.
+    """
     noise: NoiseSpec
     n: int
     run_id: int = 0
     max_parallel: int = 1
+    namespace: str = "v2_main_2026_09_16"
+    cell: dict = field(default_factory=dict)
 
     def __post_init__(self):
         self.noise_model = self.noise.build()
@@ -75,15 +84,20 @@ class Executor:
 
     def prepare(self, qc, tag: str):
         if tag not in self._prep_cache:
-            self._prep_cache[tag] = prepare(qc, self.coupling_map, self.n,
-                                            int_seed("transpiler", self.run_id))
+            self._prep_cache[tag] = prepare(
+                qc, self.coupling_map, self.n,
+                int_seed("transpiler", coords_from(self.namespace, **self.cell)))
         return self._prep_cache[tag]
 
-    def run(self, circuits, shots: int, *, role: str, coords: tuple, calibration=False):
+    def stream_coords(self, **extra):
+        """Full coordinate tuple for this cell, optionally refined by basis/scale/eval."""
+        return coords_from(self.namespace, **{**self.cell, **extra})
+
+    def run(self, circuits, shots: int, *, role: str, coords, calibration=False):
         if shots <= 0:
             return [{} for _ in circuits]
         sim = AerSimulator(noise_model=self.noise_model,
-                           seed_simulator=int_seed(role, *coords),
+                           seed_simulator=int_seed(role, coords),
                            max_parallel_threads=self.max_parallel,
                            max_parallel_experiments=1)
         res = sim.run(list(circuits), shots=shots).result()
@@ -113,7 +127,8 @@ def calibrate(ex: Executor, prep, shots_total: int, eval_id: int, legacy: bool =
             if legacy else
             calibration_circuits(prep.clbit_to_phys, prep.circuit.num_qubits, prep.circuit.num_clbits))
     per = max(shots_total // len(cals), 1)
-    counts = ex.run(cals, per, role="calibration", coords=(ex.run_id, eval_id), calibration=True)
+    counts = ex.run(cals, per, role="calibration",
+                    coords=ex.stream_coords(eval_id=eval_id), calibration=True)
     return build_confusion(counts, prep.clbit_to_phys, prep.circuit.num_clbits)
 
 
@@ -150,7 +165,7 @@ def estimate(ex: Executor, circuits: dict, combine, method: str, budget: int, *,
         vals = {}
         for bi, b in enumerate(bases):
             cnt = ex.run([preps[b].circuit], per, role="simulator",
-                         coords=(ex.run_id, eval_id, bi, 0))[0]
+                         coords=ex.stream_coords(eval_id=eval_id, basis=b, scale=1.0))[0]
             if use_rem:
                 cnt, rem_diag = apply_rem(cnt, mats, preps[b].circuit.num_clbits, clip=clip)
             vals[b] = cnt
@@ -165,10 +180,11 @@ def estimate(ex: Executor, circuits: dict, combine, method: str, budget: int, *,
             for bi, b in enumerate(bases):
                 folder = legacy_fold if legacy_mapping else fold_preserving_measurements
                 fc = to_basis(folder(preps[b].circuit, s),
-                              int_seed("transpiler", ex.run_id, si))
+                              int_seed("transpiler", ex.stream_coords(scale=s)))
                 ops = fc.count_ops()
                 gate_counts[f"{b}@{s}"] = {g: int(ops.get(g, 0)) for g in ("cx", "sx", "x")}
-                cnt = ex.run([fc], per, role="simulator", coords=(ex.run_id, eval_id, bi, si))[0]
+                cnt = ex.run([fc], per, role="simulator",
+                             coords=ex.stream_coords(eval_id=eval_id, basis=b, scale=s))[0]
                 if use_rem:
                     cnt, rem_diag = apply_rem(cnt, mats, fc.num_clbits, clip=clip)
                 vals[b] = cnt

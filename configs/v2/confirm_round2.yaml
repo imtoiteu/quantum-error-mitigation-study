@@ -1,0 +1,20 @@
+# ROUND-2 FRESH CONFIRMATION - frozen before any round-2 data.
+# See docs/confirmation-protocol-round2.md
+study: confirm_v2r2
+seed_namespace: v2r2_confirm_2026_09_16    # never previously used
+p: 1
+instances: [prism, cycle6, k33, octahedron, path6, wheel5]
+noise:
+  - {name: dev_lagos,   kind: device}
+  - {name: dev_algiers, kind: device}
+methods: [none, zne, rem, zne_rem]
+budgets: [6000]
+seeds: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
+impls: [v2, legacy]
+legacy_budget: 6000
+eval_replicates: 2          # replicate 0 = selection sample, replicate 1 = evaluation sample
+scales: [1.0, 3.0, 5.0]
+fit: richardson
+cal_fraction: 0.20
+rem_clip: true
+output: results/v2r2/raw/confirm.jsonl
