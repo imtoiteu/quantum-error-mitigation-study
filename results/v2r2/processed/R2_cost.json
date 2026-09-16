@@ -1,0 +1,14 @@
+{
+  "cells": 3044,
+  "total_shots": 18264000,
+  "circuit_shots": 16248000,
+  "calibration_shots": 2016000,
+  "circuit_executions": 6492,
+  "calibration_executions": 20160,
+  "scoring_shots": 0,
+  "wall_clock_core_hours": 0.9183966371614628,
+  "budget_max_rel_dev_pct": 0.0,
+  "collisions": 0,
+  "n_coords": 3044,
+  "n_distinct_seeds": 1762
+}

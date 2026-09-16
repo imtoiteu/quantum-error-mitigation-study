@@ -72,9 +72,12 @@ def bh(p):
 # ---------------------------------------------------------------- F1: implementation contrast
 def family1(df):
     """Paired under common random numbers: legacy vs corrected, same cell."""
-    d = df[df.eval_id == 0]
+    # Only the mitigated arms exist in both implementations: the unmitigated arm never
+    # folds and never calibrates, so it is implementation-independent by construction and
+    # has no legacy counterpart. Including it would produce NaN rows.
+    d = df[(df.eval_id == 0) & (df.method.isin(MIT))]
     piv = d.pivot_table(index=["instance","noise","method","seed"], columns="impl",
-                        values=["estimation_error_abs","value","exact_max_cut"])
+                        values=["estimation_error_abs","value","exact_max_cut"]).dropna()
     rows = []
     for (noise, method), g in piv.groupby(level=[1, 2]):
         cmax = g[("exact_max_cut","v2")]
