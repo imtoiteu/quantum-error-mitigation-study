@@ -54,10 +54,10 @@ benchmark over six fixed instances and two device calibration snapshots, run fro
 namespace with paired common random numbers, the defective and corrected implementations differ by
 \FONeminDis--\FONemaxDis{} of $C_{\max}$ depending on the arm (one arm is unaffected), and the
 method selected as best changes in \FlipRateAllPct\% of cells among \WinnerScope. That rate
-overstates the substantive effect: \NearTiePct\% of cells are near ties. Selecting on one
-evaluation sample and paying on an independent one, the defect costs \SplitRegretExcess{} of
-$C_{\max}$ in excess regret --- small in absolute terms, and concentrated on the gate-dominated
-snapshot. We verify
+overstates the substantive effect: \TiePracticalAllPct\% of cells are practical near ties. Our
+primary endpoint is the paired held-out loss difference between the legacy-selected and
+corrected-selected method, measured on an independent evaluation replicate:
+\HeldOutDelta{} of $C_{\max}$ (95\% CI [\HeldOutLo, \HeldOutHi]) --- small in absolute terms. We verify
 against the standard library used as documented: it agrees with our corrected implementation
 exactly, and we make no claim that any released library is defective. All results are
 simulator-only and we make no claim of quantum advantage.
@@ -155,6 +155,13 @@ makes the implementation contrast a within-cell comparison. Every other factor i
 draws are independent across instance, noise, method, budget, seed, basis, scale and replicate. A
 collision audit over the realised coordinate set reports \CollisionCount{} collisions; we do not
 claim collisions are impossible.
+
+\textbf{Compilation is shared, not drawn per arm.} The transpiler stream depends only on instance,
+noise, seed and compilation replicate, so a single prepared base circuit --- same initial layout,
+routing permutation and measurement map --- serves every method and implementation within a cell.
+Each row carries a fingerprint of that base circuit and the analysis asserts it is identical across
+all arms: \CompilationViolations{} violations over \CompilationCellsChecked{} cells. Compilation
+and sampling use separate named streams.
 
 \begin{table}[t]
 \caption{MaxCut instances. ``best $\langle C\rangle$'' is a multistart numerical best-known value,
@@ -287,36 +294,47 @@ predominantly one way. Table~\ref{tab:bv} separates estimator bias from sampling
 Table~\ref{tab:f1} deliberately does not conflate.
 
 \begin{table*}[t]
-\caption{Method selection. Two candidate scopes are reported: the three mitigated methods, and the
-same set with the unmitigated option added. \emph{Near-tie} is the fraction of cells whose best and
-second-best candidates differ by less than $0.01\,C_{\max}$ --- it is large, so a changed winner
-often reflects a near-tie rather than a substantive ranking change. \emph{Split-sample regret}
-selects the method on one evaluation replicate and measures the consequence on an independent one;
-the same-sample minimum is never described as ``best attainable''.}
-\label{tab:winner}
+\caption{Primary endpoint: the paired held-out loss difference between the method selected under the
+defective implementation and the method selected under the corrected one, measured on an
+\emph{independent} evaluation replicate and normalised by $C_{\max}$. Positive values mean the
+defective selection is worse. The estimand is the mean over the six fixed instances; the stratified
+interval resamples seeds within instance and the cluster interval resamples instances. No minimum
+over methods is taken, so no noisy per-replicate minimum is treated as a minimum expected risk.}
+\label{tab:endpoint}
 \centering\small
-\input{tables/tab_winner}
+\input{tables/tab_endpoint}
+\end{table*}
+
+\begin{table*}[t]
+\caption{Near ties, reported separately for all cells and for changed-winner cells, and for each
+candidate set. \emph{Practical} means the top-two gap is below the declared threshold
+$0.01\,C_{\max}$; \emph{statistical} means it is within the Monte-Carlo scale of the selection
+replicate. These are different notions and are not merged.}
+\label{tab:ties}
+\centering\small
+\input{tables/tab_ties}
 \end{table*}
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=\textwidth]{../figures/figR2_impact}
-\caption{Implementation contrast on the fresh confirmation data. (a) Per-cell estimation error,
+\includegraphics[width=\textwidth]{../figures/figR3_impact}
+\caption{Implementation contrast and decision cost on the round-3 data. (a) Per-cell estimation error,
 defective versus corrected, paired under common random numbers. (b) Mean normalised difference with
-stratified (solid) and cluster (light) intervals. (c) Split-sample regret. Simulator only.}
+stratified (solid) and cluster (light) intervals. (c) Paired held-out loss difference between the two selections. Simulator only.}
 \label{fig:impact}
 \end{figure*}
 
-\textbf{Selection changes, with scope stated.} Table~\ref{tab:winner} reports the rate at which the
-selected method changes, for the mitigated-only candidate set and for the set including the
-unmitigated option, together with the near-tie rate. A substantial share of cells are near ties, so
-a changed winner does not by itself imply a substantive ranking change --- which is why we report
-regret on an independent sample rather than a same-sample minimum. We do not describe any
-same-sample minimum as ``best attainable''.
+\textbf{Decision cost, measured out of sample.} Table~\ref{tab:endpoint} reports the primary
+endpoint. Table~\ref{tab:ties} reports near ties along two separate axes --- practical and
+statistical --- for all cells and for changed-winner cells, and for both candidate sets. A
+substantial share of cells are near ties, so a changed winner does not by itself imply a substantive
+ranking change. That is precisely why the endpoint is a paired held-out difference between two named
+selections rather than a gap to a same-sample minimum; we do not describe any same-sample minimum as
+``best attainable''.
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=\textwidth]{../figures/figR2_perinstance}
+\includegraphics[width=\textwidth]{../figures/figR3_perinstance}
 \caption{Per-instance results. Pooled means conceal instance-to-instance heterogeneity, which is why
 inference is instance-aware. Simulator only.}
 \label{fig:perinst}
