@@ -198,6 +198,94 @@ def costs(df):
     (PROC/"R3_cost.json").write_text(json.dumps(tot, indent=2)); return tot
 
 
+
+# ---------------------------------------------------------------- figures
+def figures(df, f1, s, w):
+    import matplotlib; matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    COLOR={"zne":"#eb6834","rem":"#1baf7a","zne_rem":"#eda100","none":"#2a78d6"}
+    MARK={"zne":"s","rem":"^","zne_rem":"D","none":"o"}
+    FIG=ROOT/"figures"
+    def style(ax):
+        ax.grid(True, lw=.5, alpha=.25, color="#9a9a94"); ax.set_axisbelow(True)
+        for k in ("top","right"): ax.spines[k].set_visible(False)
+        for k in ("left","bottom"): ax.spines[k].set_color("#52514e"); ax.spines[k].set_linewidth(.8)
+        ax.tick_params(colors="#52514e", labelsize=8)
+    def save(fig,n):
+        for e in ("pdf","png"):
+            fig.savefig(FIG/f"{n}.{e}", dpi=300, bbox_inches="tight", facecolor="white")
+        plt.close(fig)
+
+    d = df[(df.eval_id==0) & (df.method.isin(MIT))]
+    piv = d.pivot_table(index=["instance","noise","method","seed"], columns="impl",
+                        values="loss_norm").dropna()
+
+    # --- Fig A: implementation contrast + primary endpoint
+    fig,axes = plt.subplots(1,3, figsize=(11.4,3.4), gridspec_kw={"width_ratios":[1.1,1.15,1.05]})
+    ax=axes[0]; style(ax)
+    for m in MIT:
+        g=piv.xs(m, level=2)
+        ax.scatter(g["v2"], g["legacy"], s=9, alpha=.5, color=COLOR[m], marker=MARK[m],
+                   label=LABEL[m], linewidths=0)
+    lim=[0, float(piv.max().max())*1.03]; ax.plot(lim,lim,color="#52514e",lw=1,ls="--",zorder=1)
+    ax.set_xlim(lim); ax.set_ylim(lim)
+    ax.set_xlabel("estimation error / $C_{max}$, corrected", fontsize=8.5)
+    ax.set_ylabel("estimation error / $C_{max}$, defective", fontsize=8.5)
+    ax.set_title("(a) paired, common random numbers", fontsize=9)
+    ax.legend(frameon=False, fontsize=7.5, loc="lower right")
+
+    ax=axes[1]; style(ax)
+    xs=np.arange(len(MIT)); wd=0.36
+    for k,noise in enumerate(sorted(f1.noise.unique())):
+        sub=f1[f1.noise==noise].set_index("method").reindex(MIT)
+        pos=xs+(k-0.5)*wd
+        ax.bar(pos, sub.mean_signed, width=wd*0.9, color=["#2a78d6","#eb6834"][k],
+               label=noise.replace("dev_",""), zorder=3)
+        ax.errorbar(pos, sub.mean_signed,
+                    yerr=[sub.mean_signed-sub.cluster_lo, sub.cluster_hi-sub.mean_signed],
+                    fmt="none", ecolor="#9a9a94", elinewidth=2.8, alpha=.45, capsize=0, zorder=4)
+        ax.errorbar(pos, sub.mean_signed,
+                    yerr=[sub.mean_signed-sub.ci_lo, sub.ci_hi-sub.mean_signed],
+                    fmt="none", ecolor="#0b0b0b", elinewidth=1.1, capsize=2.5, zorder=5)
+    ax.axhline(0, color="#52514e", lw=.8)
+    ax.set_xticks(xs); ax.set_xticklabels([LABEL[m] for m in MIT], fontsize=8)
+    ax.set_ylabel("mean signed difference / $C_{max}$", fontsize=8.5)
+    ax.set_title("(b) dark = stratified CI, light = cluster CI", fontsize=9)
+    ax.legend(frameon=False, fontsize=7.5)
+
+    ax=axes[2]; style(ax)
+    ss = s[(s.candidate_set=="incl_unmitigated") & (s.noise!="ALL")].reset_index(drop=True)
+    xs=np.arange(len(ss))
+    ax.bar(xs, ss.delta_heldout, width=0.45, color="#1baf7a", zorder=3)
+    ax.errorbar(xs, ss.delta_heldout,
+                yerr=[ss.delta_heldout-ss.ci_lo, ss.ci_hi-ss.delta_heldout],
+                fmt="none", ecolor="#0b0b0b", elinewidth=1.1, capsize=3, zorder=4)
+    ax.axhline(0, color="#52514e", lw=.8)
+    ax.set_xticks(xs); ax.set_xticklabels([n.replace("dev_","") for n in ss.noise], fontsize=8)
+    ax.set_ylabel("held-out loss difference / $C_{max}$", fontsize=8.5)
+    ax.set_title("(c) legacy-selected $-$ corrected-selected", fontsize=9)
+    fig.suptitle("Implementation contrast and decision cost, round-3 data (simulator only)", fontsize=10.5)
+    fig.tight_layout(rect=[0,0,1,0.93]); save(fig,"figR3_impact")
+
+    # --- Fig B: per-instance, shared legend below (no data obscured)
+    v2 = df[(df.eval_id==0) & (df.impl=="v2")]
+    insts=sorted(v2.instance.unique()); noises=sorted(v2.noise.unique())
+    fig,axes=plt.subplots(1,len(noises), figsize=(5.7*len(noises),3.3), squeeze=False)
+    for j,nz in enumerate(noises):
+        ax=axes[0][j]; style(ax); xs=np.arange(len(insts)); wd=0.2
+        for k,m in enumerate(ALL4):
+            v=(v2[(v2.noise==nz)&(v2.method==m)].groupby("instance").loss_norm.mean().reindex(insts))
+            ax.bar(xs+(k-1.5)*wd, v.values, width=wd*0.9, color=COLOR[m], label=LABEL[m], zorder=3)
+        ax.set_xticks(xs); ax.set_xticklabels(insts, fontsize=8, rotation=28, ha="right")
+        ax.set_title(nz, fontsize=9); ax.margins(y=0.16)
+        if j==0: ax.set_ylabel("mean estimation error / $C_{max}$", fontsize=8.5)
+    h,l = axes[0][0].get_legend_handles_labels()
+    fig.legend(h, l, loc="lower center", ncol=4, frameon=False, fontsize=8.5, bbox_to_anchor=(0.5,-0.02))
+    fig.suptitle("Per-instance results, corrected implementation (simulator only; 30 seeds per bar)", fontsize=10)
+    fig.tight_layout(rect=[0,0.06,1,0.93]); save(fig,"figR3_perinstance")
+    print("figures written: figR3_impact, figR3_perinstance")
+
+
 def main():
     df = load()
     print(f"loaded {len(df)} rows; namespace={sorted(df.seed_namespace.unique())}")
@@ -208,6 +296,7 @@ def main():
         print(bad.head().to_string())
     w = selection_table(df); s = endpoint_summary(w)
     f1 = family1(df); bv = bias_variance(df); tot = costs(df)
+    figures(df, f1, s, w)
     pd.set_option("display.width", 220)
     print("\n=== PRIMARY ENDPOINT: paired held-out loss difference (legacy-selected - corrected-selected) ===")
     print(s[["candidate_set","noise","n","delta_heldout","ci_lo","ci_hi","cluster_lo","cluster_hi",
