@@ -19,21 +19,32 @@ competing-interest statement has been invented.** You must supply:
 Edit the `\author{...}` block in `manuscript/manuscript.tex`. If the target edition uses
 double-anonymous review, leave it as-is.
 
-## 2. Venue facts that must be checked against the live CfP (blocking)
+## 2. Venue facts — partially verified in round 2
 
-`docs/venue-decision.md` records these as **UNKNOWN**; they change annually and were deliberately
-not guessed:
+**VERIFIED from the official IEEE QCE Call for Technical Papers** (no longer unknown):
 
-- [ ] IEEE QCE next-edition **submission deadline**
-- [ ] **Page limit** for the technical-paper track (the manuscript is currently formatted for the
-      IEEE conference template; check the current limit and trim/expand accordingly)
-- [ ] **Registration and publication fees** — amount unknown; do not assume affordable
-- [ ] Whether **in-person or virtual presentation** is mandatory for inclusion in proceedings
-- [ ] **Review model** (single- vs double-anonymous) for the next edition
-- [ ] Whether the venue requires a specific **AI-use disclosure** wording (a draft disclosure section
-      is already in the manuscript; replace it with the venue's required text if one exists)
+- Full papers are **8–10 pages** plus 2 pages of references; short papers 4–6 plus 1.
+- Template is `\documentclass[10pt,conference]{IEEEtran}` **without** `compsoc` (now applied).
+- **At least one author must commit to register and attend in person.** This is an explicit
+  condition of submission, not an option.
+- The **QSYS — Software Systems** track lists "Testing, validation, and verification of quantum
+  programs and systems" and "Software techniques for error correction and noise mitigation".
 
-Official source: <https://qce.quantum.ieee.org>
+**STILL UNKNOWN — you must check before submitting:**
+
+- [ ] QCE submission **deadline** (the technical-papers page defers to a separate deadlines page)
+- [ ] QCE **review model** (single- vs double-anonymous)
+- [ ] QCE **registration and publication fees** — amount unknown; do not assume affordable
+- [ ] Whether the venue mandates specific **AI-use disclosure** wording
+
+**Decided by evidence, not assumption:**
+
+- [ ] **IEEE QSW 2026 is closed.** Verified dates: extended firm deadline 22 March 2026,
+      camera-ready 31 May 2026. Today is 16 September 2026. QSW is the closest topical match
+      (it lists transpilers, regression testing and program equivalence explicitly), so **monitor
+      the QSW 2027 call** — that may be the better venue when it opens.
+- [ ] **Can you satisfy the in-person attendance requirement?** If not, QCE is not viable and the
+      decision changes materially. This is the single most consequential unknown.
 
 ## 3. Decisions the author may wish to override
 

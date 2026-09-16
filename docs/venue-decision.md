@@ -1,72 +1,84 @@
-# Venue Decision
+# Venue Decision (round 2, reassessed)
 
-**Compiled:** 2026-09-16. All statements below are backed by a retrieved record. **Fees, deadlines,
-acceptance rates and indexing that were not verified are marked UNKNOWN and must not be assumed.**
+**Compiled:** 2026-09-16. Facts below were retrieved from official calls for papers. Anything not
+retrieved is marked **UNKNOWN** and must be checked by the author before submission. No acceptance
+probability is estimated and no venue is described as easy.
 
-## Contribution type being placed
+## What changed since round 1
 
-A **software-correctness / benchmarking-validity** paper for quantum error mitigation:
-a silent implementation defect in ZNE/REM pipelines, minimal regression tests with an exact oracle,
-a quantified impact on a previously frozen benchmark, and a corrected budget-matched comparison.
-Simulator-only. No hardware, no advantage claim. Modest scope, strong artifact.
+The contribution was reframed (see `REVIEW_RESPONSE_round2.md` §9) from an implied discovery to a
+**bounded integration-failure case study with a reusable validation artifact**. That is a
+**quantum-software-engineering** contribution — testing, validation, toolchain/transpiler
+correctness — not an error-mitigation methods contribution. The venue set changes accordingly.
 
-## Primary venue: IEEE International Conference on Quantum Computing and Engineering (QCE / "IEEE Quantum Week")
+**Round 1's fallback reasoning is withdrawn.** IEEE TQE is *not* automatically an easier fallback:
+it is a quantum-engineering journal whose error-mitigation output is methods-oriented, and a software
+validation case study is a weaker topical match there than at a software venue. Round 1 treated TQE
+as a safe second option without evidence; that was unjustified.
 
-**Evidence of fit — QCE demonstrably accepts this exact genre:**
+## Primary: IEEE Quantum Week (QCE), **QSYS — Software Systems track**
 
-| Paper | Relevance | Record |
-|---|---|---|
-| Köster & Mauerer, *Benchmarking Error Mitigation: Artefactual Improvements in Zero-Noise Extrapolation* | **A paper whose entire contribution is "a ZNE benchmark result was an artefact"** — the closest possible precedent for our contribution type | arXiv:2607.09360 v2, **"Accepted for publication at IEEE Quantum Week (QCE) 2026"** |
-| Majumdar, Rivero, Metz, Hasan, Wang, *Best practices for QEM with dZNE* | A pure methodology/practice paper on dZNE, no new method | IEEE QCE 2023, DOI 10.1109/QCE57702.2023.00102 |
-| Giurgica-Tiron, Hindy, LaRose, Mari, Zeng, *Digital zero noise extrapolation for QEM* | dZNE itself was introduced at QCE | IEEE QCE 2020, DOI 10.1109/QCE49297.2020.00045 |
-| Finžgar, Ross, Hölscher, Klepsch, Luckow, *QUARK: A Framework for Quantum Computing Application Benchmarking* | Benchmarking-infrastructure paper, simulator-inclusive | IEEE QCE 2022, DOI 10.1109/QCE53715.2022.00042 |
-| Pelofske & Russo, *Digital Zero-Noise Extrapolation with Quantum Circuit Unoptimization* | Continued dZNE-methodology acceptance | IEEE QCE 2025, DOI 10.1109/QCE65121.2025.00020 |
+**Verified from the official Call for Technical Papers** (<https://qce.quantum.ieee.org/2026/call-for-technical-papers/>):
 
-**Why this is the primary choice**
-1. The 2026 acceptance of Köster & Mauerer is direct, current evidence that a "this ZNE result was not real" paper is in scope — and our finding is the complementary *implementation* failure mode to their *regime* failure mode, so the community context already exists.
-2. QCE has a technical-paper track with short page limits suited to a bounded contribution, plus workshops as a within-venue fallback.
-3. Wolfgang Mauerer (co-author of P5) also authored *1-2-3 Reproducibility for Quantum Software Experiments* (IEEE SANER 2022, DOI 10.1109/SANER53432.2022.00148), indicating an active reproducibility-minded readership at this venue.
-4. Simulator-only work is accepted here (Majumdar's Fig. 7 readout experiment is a noisy-simulator result).
+| Requirement | Verified value |
+|---|---|
+| Full paper length | **8–10 pages** including figures, tables and appendices, **plus 2 pages for references** |
+| Short paper length | 4–6 pages plus 1 page references |
+| Template | `\documentclass[10pt,conference]{IEEEtran}`, **without** `compsoc`; title 24pt, body 10pt |
+| Attendance | **"a commitment for at least one author to register and attend the conference in person upon acceptance"** |
+| Authorship | must comply with the IEEE Policy on Authorship |
+| Review model | **UNKNOWN** — not stated on the page retrieved |
+| Deadline | **UNKNOWN** — the technical-papers page refers to a separate deadlines page |
+| Fees | **UNKNOWN** — not stated; must not be assumed affordable |
 
-**Verified requirements**
-- Official CfP / author information: <https://qce.quantum.ieee.org>
-- Format: IEEE conference proceedings template (`IEEEtran`, `conference` option). We use the official IEEEtran class.
+**Track fit, quoted from the call.** QSYS lists *"Testing, validation, and verification of quantum
+programs and systems"* and *"Software techniques for error correction and noise mitigation"*. Our
+contribution — deterministic validation oracles for an error-mitigation toolchain, plus a measured
+integration failure — sits in the intersection of those two bullets.
 
-**UNKNOWN — must be confirmed by the author before submission**
-- Submission deadline for the next edition (deadlines change annually; **not verified**).
-- Page limit for the technical-paper track in the next edition (historically ~8–10 pages for QCE technical papers, **not verified for the next edition**).
-- Registration/publication fees. **UNKNOWN.** IEEE conferences normally require at least one author to register and present; the amount was not verified and must not be assumed affordable.
-- Whether presentation is required for inclusion in proceedings (**normally yes at IEEE conferences, not verified for this edition**).
-- Review model (single vs double anonymous) for the next edition. Our LaTeX source carries a switch for anonymous formatting.
+**Precedent for the paper type at this venue.** Köster & Mauerer, *Benchmarking Error Mitigation:
+Artefactual Improvements in Zero-Noise Extrapolation*, is **accepted at IEEE QCE 2026**
+(arXiv:2607.09360v2) — a paper whose entire contribution is that a ZNE benchmark result was an
+artefact. Also Majumdar *et al.* (QCE 2023, dZNE best practices), Giurgica-Tiron *et al.* (QCE 2020),
+Finžgar *et al.* (QCE 2022, benchmarking framework), Pelofske & Russo (QCE 2025).
 
-## Fallback venue: IEEE Transactions on Quantum Engineering (TQE)
+**Consequence for this manuscript:** it must be **8–10 pages** to qualify as a full paper. The
+current draft is shorter and is being expanded with material currently in the supplement (the
+bias/variance analysis and the per-instance results), not padded.
 
-**Evidence of fit**
+## Secondary: IEEE International Conference on Quantum Software (QSW)
 
-| Paper | Relevance | Record |
-|---|---|---|
-| Russo, Mari, Shammah, LaRose, Zeng, *Testing Platform-Independent QEM on Noisy Quantum Computers* | Empirical, multi-method, tooling-centred QEM evaluation | IEEE TQE 4, 1–18 (2023), DOI 10.1109/TQE.2023.3305232 |
-| Lubinski *et al.*, *Application-Oriented Performance Benchmarks for Quantum Computing* | Benchmarking-methodology paper | IEEE TQE 4, 1–32 (2023), DOI 10.1109/TQE.2023.3253761 |
-| Prodius, Czarnik, McKerns, Sornborger, Cincio, *Robust Design Under Uncertainty in QEM* | QEM still actively published there in 2026 | IEEE TQE 7, 1–13 (2026), DOI 10.1109/TQE.2026.3680641 |
+**Verified** (<https://services.conferences.computer.org/2026/qsw/qsw-call-for-papers/>). Topic fit is
+excellent — the call explicitly lists *"Testing methodologies for quantum and hybrid applications"*,
+*"Regression testing and evolution of quantum software"*, *"Compilers, transpilers, simulators,
+optimizers, and code generators"*, *"Program equivalence, refinement, and transformation"* and
+*"Statistical verification with confidence guarantees"*. Our oracles are regression tests for a
+transpiler-sensitive toolchain, so this is arguably the single closest topical match of any venue
+considered.
 
-**Why fallback rather than primary:** TQE is a journal with rolling submission (no deadline risk) and
-longer articles, which suits the material; but the *closest published precedent for our specific
-contribution type* (an artefact/validity paper about ZNE benchmarking) is at QCE, not TQE. If QCE's
-next deadline is unreachable, TQE becomes primary with no change of content — only a template swap
-(`IEEEtran` journal mode) and expansion of the supplementary material into the main text.
+**Blocking fact: the 2026 cycle has closed.** Verified dates: submissions 8 March 2026, extended
+"firm" deadline **22 March 2026**, notifications 10 May 2026, camera-ready 31 May 2026. Today is
+16 September 2026, so **QSW 2026 cannot be submitted to**. The QSW 2027 call was not available at the
+time of writing. Page limits, template, fees and review model for QSW are **UNKNOWN**.
 
-**Fallback adaptation note:** `manuscript/FALLBACK_TQE.md` records the concrete edits required.
-We prepare **one** submission at a time; no duplicate submission.
+## Tertiary: IEEE Transactions on Quantum Engineering
 
-## Venues considered and rejected, with reasons
+Retained only as a third option, with its round-1 justification withdrawn. It has a rolling deadline
+and publishes empirical mitigation work (Russo *et al.* 2023; Lubinski *et al.* 2023; Prodius *et al.*
+2026), but a software-validation case study is a weaker match for a quantum-engineering journal than
+for QCE-QSYS or QSW. Adaptation notes in `manuscript/FALLBACK_TQE.md` remain valid if chosen.
 
-- **ACM Transactions on Quantum Computing** — publishes ZNE benchmarking (Pelofske *et al.*, DOI 10.1145/3680290) and shot-budget methodology (Bisicchia *et al.*, DOI 10.1145/3841468), but sample articles run 18–86 pages; our bounded contribution would be under-scoped. Retained as a second fallback only if expanded.
-- **Quantum / PRX Quantum** — no located precedent for a pure implementation-correctness note; scope expectations substantially exceed this contribution.
-- **Quantum Reports, Entropy (MDPI)** — ISSN-scoped Crossref probes returned essentially no QEM-benchmarking readership (see `docs/venue-survey.md`). Topical eligibility is not evidence of fit; rejected.
+## Recommendation
 
-## Statements deliberately not made
+1. **IEEE QCE, QSYS track** — best combination of verified topical fit and demonstrated acceptance of
+   this exact paper type. Requires expansion to the verified 8–10 page window and an in-person
+   attendance commitment.
+2. **IEEE QSW** — closest topical match, but only from the 2027 cycle onward; monitor the call.
+3. **IEEE TQE** — third option, not a default fallback.
 
-We do not claim any venue is "easy", estimate an acceptance probability, or assert any deadline,
-fee, indexing status or ranking that was not verified. Topical fit is not evidence of acceptance.
-A workshop or poster acceptance would **not** be equivalent to a full research-paper publication and
-would be reported as what it is.
+Submit to **one** venue at a time.
+
+## Deliberately not asserted
+
+Acceptance probability; any deadline, fee, page limit or review model not quoted above; that any
+venue is easy; that a workshop or poster acceptance would be equivalent to a full paper.
