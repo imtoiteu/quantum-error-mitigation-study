@@ -154,6 +154,75 @@ in all stored rows are unchanged.**
 
 ---
 
-## Results and remaining uncertainties
+## 7. Results of the corrected rerun — and what they do to the paper
 
-*(§7 below is completed from the round-3 run; see `results/v2r3/processed/`.)*
+The round-3 run completed: **5,040 cells, 0 duplicates**, namespace
+`v2r3_confirm_2026_09_16`, realised budget deviation **0.0000%**,
+**0** stream collisions, **0 compilation
+violations over 360 cells** (every arm of every cell shared one base circuit),
+and **0** rows missing a
+fingerprint. Overlap with round-2 values: 3 of 5040 (0.06%), consistent with chance ties.
+
+### The correction materially weakened our own headline
+
+| quantity | round 2 (confounded) | round 3 (corrected) |
+|---|---|---|
+| winner-change rate | 74.7% | **76.4%** |
+| practical near ties (all cells) | 53.3% | **96.4%** |
+| statistically indistinguishable | not reported | **100.0%** |
+| decision cost | 0.0067 (vs a noisy minimum) | **+0.0007** (paired held-out) |
+
+With compilation held fixed and the endpoint replaced, **the decision cost collapses by roughly an
+order of magnitude**. The held-out difference is +0.0007 of $C_{\max}$
+(stratified CI [+0.0001, +0.0013]; cluster CI
+[+0.0004, +0.0012]) — statistically resolvable, but about **an order of
+magnitude below the practical threshold of 0.01 we declared in advance**. On `dev_lagos` it is
+-0.0005 with CI [-0.0016, +0.0006], which **crosses zero**; the
+effect is carried entirely by `dev_algiers` (+0.0020).
+
+Meanwhile **96.4% of cells are practical ties and
+100.0% are statistically indistinguishable**, with a median top-two gap
+under 0.002 $C_{\max}$. So the high winner-change rate is not evidence of a substantive ranking
+change: it is near-coin-flipping between near-equivalent options.
+
+### What the paper now claims
+
+> The defect **reliably changes which method a benchmark selects** (76.4% of
+> cells), and **reliably shifts estimates one-directionally** for two of six arms
+> (directionality 0.99). But its **downstream decision cost in these
+> conditions is negligible** — an order of magnitude below the declared practical threshold, and not
+> resolvable at all on one of the two devices.
+
+That is a weaker and partly negative result, and the abstract, results and conclusion now say so
+explicitly. We also added a threats-to-validity item stating that this design has **little power to
+detect that such changes matter**, because the mitigated arms are nearly tied per cell at this
+budget; the null is not claimed to generalise to a regime with better-separated methods.
+
+The implementation-contrast result survives intact: all six tests remain significant after BH
+adjustment, with mean absolute differences of 0.001–0.094 of
+$C_{\max}$ and directionality up to 0.99.
+
+---
+
+## Remaining uncertainties
+
+1. **Low discrimination.** At $B=6000$ on these six instances the mitigated methods are nearly tied
+   per cell (100% statistically indistinguishable). This design shows
+   the defect changes selections; it has little power to show those changes matter.
+2. **The decision-cost null is scope-bound.** It holds for these instances, this budget, these two
+   snapshots and these three methods. We do not claim it generalises.
+3. **Round-1 and round-2 data are superseded for ranking claims** and retained unchanged. Round 2's
+   ranking numbers were confounded by compilation; round 1 additionally had correlated streams.
+4. **Six fixed instances, $p=1$, six qubits, one REM variant, global folding, Richardson only.**
+5. **Literature search remains bounded** — arXiv's API stayed rate-limited from this host.
+6. **`git_dirty=True` on round-3 rows.** Cause identified (the run's own log file is created by the
+   shell redirect before `provenance()` runs, and logs are tracked). All eight execution-path content
+   hashes match their committed versions at `f46d7a9`. **Verified file hashes do not imply a clean
+   working tree**, and we do not claim one.
+7. **No target venue edition has an open call** (QCE 2026 closed 27 Apr 2026; QSW 2026 closed
+   22 Mar 2026; neither 2027 call published).
+
+**The manuscript is not declared submission-ready.** The contribution is now a bounded
+integration-failure case study with a reusable validation artifact and an explicitly negative
+decision-cost result.
+

@@ -23,3 +23,31 @@ total cells 5040, already done 0, to run 5040
   2200/5040   5030.0s  eta  6493.3s  rss 0.39GB
   2300/5040   5377.1s  eta  6405.7s  rss 0.39GB
   2400/5040   5657.4s  eta  6223.2s  rss 0.39GB
+  2500/5040   6071.9s  eta  6169.1s  rss 0.39GB
+  2600/5040   6221.3s  eta  5838.4s  rss 0.39GB
+  2700/5040   6375.4s  eta  5525.3s  rss 0.39GB
+  2800/5040   6450.7s  eta  5160.5s  rss 0.39GB
+  2900/5040   6582.1s  eta  4857.1s  rss 0.39GB
+  3000/5040   6784.5s  eta  4613.5s  rss 0.39GB
+  3100/5040   7191.2s  eta  4500.3s  rss 0.39GB
+  3200/5040   7494.6s  eta  4309.4s  rss 0.39GB
+  3300/5040   7883.3s  eta  4156.6s  rss 0.39GB
+  3400/5040   8167.7s  eta  3939.7s  rss 0.39GB
+  3500/5040   8271.3s  eta  3639.4s  rss 0.39GB
+  3600/5040   8366.7s  eta  3346.7s  rss 0.39GB
+  3700/5040   8471.2s  eta  3067.9s  rss 0.39GB
+  3800/5040   8620.3s  eta  2812.9s  rss 0.39GB
+  3900/5040   8945.6s  eta  2614.9s  rss 0.39GB
+  4000/5040   9305.5s  eta  2419.4s  rss 0.39GB
+  4100/5040   9606.4s  eta  2202.4s  rss 0.39GB
+  4200/5040   9986.4s  eta  1997.3s  rss 0.39GB
+  4300/5040  10066.7s  eta  1732.4s  rss 0.39GB
+  4400/5040  10175.2s  eta  1480.0s  rss 0.39GB
+  4500/5040  10246.6s  eta  1229.6s  rss 0.39GB
+  4600/5040  10375.8s  eta   992.5s  rss 0.39GB
+  4700/5040  10602.5s  eta   767.0s  rss 0.39GB
+  4800/5040  10974.6s  eta   548.7s  rss 0.39GB
+  4900/5040  11243.3s  eta   321.2s  rss 0.39GB
+  5000/5040  11606.3s  eta    92.9s  rss 0.39GB
+  5040/5040  11777.1s  eta     0.0s  rss 0.39GB
+batch done in 11777.1s -> /root/imtoiteu/quantum-error-mitigation-study/results/v2r3/raw/confirm.jsonl

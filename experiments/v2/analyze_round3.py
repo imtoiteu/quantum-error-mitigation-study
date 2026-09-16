@@ -82,8 +82,12 @@ def cluster_boot(per_inst, n_boot=NB):
 
 def selection_table(df):
     """Per-cell selections, held-out losses, and tie diagnostics."""
-    sel = df[df.eval_id == 0].set_index(["instance","noise","seed","method","impl"])
-    ev  = df[df.eval_id == 1].set_index(["instance","noise","seed","method","impl"])
+    # NOTE: select the loss column explicitly. Indexing the whole frame makes
+    # .loc[...] return a row rather than a scalar.
+    key_cols = ["instance", "noise", "seed", "method", "impl"]
+    sel = df[df.eval_id == 0].set_index(key_cols).loss_norm
+    ev  = df[df.eval_id == 1].set_index(key_cols).loss_norm
+    assert sel.index.is_unique and ev.index.is_unique, "selection/evaluation index is not unique"
     cmax = df.groupby("instance").exact_max_cut.first()
     # Monte-Carlo scale for "statistically indistinguishable": sd of the loss across
     # seeds within (instance, noise, method) on the selection replicate, corrected impl.

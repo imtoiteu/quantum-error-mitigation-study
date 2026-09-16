@@ -42,11 +42,15 @@ defect, because at zero readout noise every response matrix is the identity. On 
 benchmark over six fixed instances and two device calibration snapshots, run from a fresh seed
 namespace with paired common random numbers, the defective and corrected implementations differ by
 \FONeminDis--\FONemaxDis{} of $C_{\max}$ depending on the arm (one arm is unaffected), and the
-method selected as best changes in \FlipRateAllPct\% of cells among \WinnerScope. That rate
-overstates the substantive effect: \TiePracticalAllPct\% of cells are practical near ties. Our
-primary endpoint is the paired held-out loss difference between the legacy-selected and
-corrected-selected method, measured on an independent evaluation replicate:
-\HeldOutDelta{} of $C_{\max}$ (95\% CI [\HeldOutLo, \HeldOutHi]) --- small in absolute terms. We verify
+method selected as best changes in \FlipRateAllPct\% of cells among \WinnerScope. That rate is
+not evidence of a substantive ranking change: once compilation is held fixed,
+\TiePracticalAllPct\% of cells are practical near ties and \TieStatAllPct\% are statistically
+indistinguishable. Our primary endpoint is the paired held-out loss difference between the
+legacy-selected and corrected-selected method on an independent evaluation replicate. It is
+\HeldOutDelta{} of $C_{\max}$ (95\% CI [\HeldOutLo, \HeldOutHi]) --- resolvable, but roughly an
+order of magnitude below our declared practical threshold of $0.01$, and not resolvable at all on
+the readout-dominated device. \textbf{The defect reliably changes which method a benchmark selects,
+yet its downstream decision cost in these conditions is negligible.} We verify
 against the standard library used as documented: it agrees with our corrected implementation
 exactly, and we make no claim that any released library is defective. All results are
 simulator-only and we make no claim of quantum advantage.
@@ -316,12 +320,22 @@ stratified (solid) and cluster (light) intervals. (c) Paired held-out loss diffe
 \end{figure*}
 
 \textbf{Decision cost, measured out of sample.} Table~\ref{tab:endpoint} reports the primary
-endpoint. Table~\ref{tab:ties} reports near ties along two separate axes --- practical and
-statistical --- for all cells and for changed-winner cells, and for both candidate sets. A
-substantial share of cells are near ties, so a changed winner does not by itself imply a substantive
-ranking change. That is precisely why the endpoint is a paired held-out difference between two named
-selections rather than a gap to a same-sample minimum; we do not describe any same-sample minimum as
-``best attainable''.
+endpoint and Table~\ref{tab:ties} the near-tie structure. Two findings must be read together.
+
+First, the selected method changes often: \FlipRateAllPct\% of cells, and the rate is unchanged
+when the unmitigated option is added to the candidate set. Second, that rate carries almost no
+decision weight here. With compilation held fixed across arms, \TiePracticalAllPct\% of cells have
+a top-two gap below the practical threshold and \TieStatAllPct\% are within the Monte-Carlo scale
+of the selection replicate; the median gap is under $0.002\,C_{\max}$. The held-out cost of
+following the defective selection is \HeldOutDelta{} of $C_{\max}$ (stratified CI
+[\HeldOutLo, \HeldOutHi]; cluster CI [\HeldOutClusterLo, \HeldOutClusterHi]) --- statistically
+resolvable, but about an order of magnitude below the threshold we declared in advance, and on
+\code{dev\_lagos} the interval crosses zero.
+
+\textbf{We therefore do not claim the defect materially degrades method selection in these
+conditions.} It reliably changes the answer; in this regime the answers it changes between are
+nearly equivalent. This is weaker than a same-sample regret statistic would suggest, which is why
+that statistic was withdrawn.
 
 \begin{figure*}[t]
 \centering
@@ -354,6 +368,10 @@ We have not audited third-party libraries, and the positive control indicates th
 used as documented is unaffected.
 \textbf{Dependence.} Seeds are nested within instance and recur across arms; observations are not
 independent draws and are not analysed as such.
+\textbf{Low discrimination between methods.} At $B=6000$ on these instances the mitigated arms are
+nearly tied per cell, so this design can establish that the defect changes selections but has little
+power to show that such changes matter. A regime with better-separated methods would be needed for
+that, and we do not claim our null result generalises to one.
 \textbf{Round-1 data} was generated with correlated streams and a dirty working tree; it is reported
 as exploratory, its provenance is reconstructed rather than relabelled, and no claim rests on it.
 
@@ -366,8 +384,10 @@ SHA-256 content hash of every execution-path file. The repository is currently p
 made public on acceptance; we do not claim public availability before then.
 
 \section{Conclusion}
-Two integration errors in an error-mitigation pipeline changed which method a benchmark selected,
-without producing any error or implausible output. Neither hazard is new, and the standard tooling
+Two integration errors in an error-mitigation pipeline changed which method a benchmark selected in
+\FlipRateAllPct\% of cells, without producing any error or implausible output --- though in this
+regime the competing methods are so close that the measured held-out cost of the wrong selection is
+about an order of magnitude below our declared practical threshold. Neither hazard is new, and the standard tooling
 already solves one of them. What we offer is a pair of deterministic, sampling-free oracles --- and
 the observation that they are not interchangeable, since the folding oracle is provably blind to the
 calibration defect --- together with a measurement of how far such an error can move a complete
