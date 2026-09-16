@@ -192,11 +192,114 @@ def winners(df):
     return w, s, pr
 
 
+def costs_and_audit(df):
+    """Cost totals, realised budget match, and an empirical stream-collision audit."""
+    sys.path.insert(0, str(ROOT/"src"))
+    from qemstudy.v2.seeding import coords_from, audit_collisions
+    dev = df.groupby("budget").total_shots.agg(["min","max"])
+    rel = float(((dev["max"]-dev["min"])/dev["max"]).max())
+    coords = [coords_from(r.seed_namespace, instance=r.instance, noise=r.noise, method=r.method,
+                          budget=r.budget, seed=r.seed, eval_id=r.eval_id)
+              for r in df.itertuples()]
+    aud = audit_collisions("simulator", coords)
+    tot = dict(cells=int(len(df)), total_shots=int(df.total_shots.sum()),
+               circuit_shots=int(df.circuit_shots.sum()),
+               calibration_shots=int(df.calibration_shots.sum()),
+               circuit_executions=int(df.circuit_executions.sum()),
+               calibration_executions=int(df.calibration_executions.sum()),
+               scoring_shots=0,
+               wall_clock_core_hours=float(df.wall_clock_s.sum()/3600),
+               budget_max_rel_dev_pct=100*rel,
+               collisions=int(aud["n_collisions"]), n_coords=int(aud["n_coords"]),
+               n_distinct_seeds=int(aud["n_distinct_seeds"]))
+    (PROC/"R2_cost.json").write_text(json.dumps(tot, indent=2))
+    return tot
+
+
+def figures(df, f1, s):
+    import matplotlib; matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    COLOR={"zne":"#eb6834","rem":"#1baf7a","zne_rem":"#eda100","none":"#2a78d6"}
+    MARK={"zne":"s","rem":"^","zne_rem":"D","none":"o"}
+    FIG=ROOT/"figures"
+    def style(ax):
+        ax.grid(True, lw=.5, alpha=.25, color="#9a9a94"); ax.set_axisbelow(True)
+        for k in ("top","right"): ax.spines[k].set_visible(False)
+        for k in ("left","bottom"): ax.spines[k].set_color("#52514e"); ax.spines[k].set_linewidth(.8)
+        ax.tick_params(colors="#52514e", labelsize=8)
+    def save(fig,n):
+        for e in ("pdf","png"): fig.savefig(FIG/f"{n}.{e}", dpi=300, bbox_inches="tight", facecolor="white")
+        plt.close(fig)
+
+    d = df[df.eval_id==0]
+    piv = d.pivot_table(index=["instance","noise","method","seed"], columns="impl",
+                        values="estimation_error_abs").dropna()
+    fig,axes = plt.subplots(1,3, figsize=(11.4,3.5), gridspec_kw={"width_ratios":[1.15,1.15,1.0]})
+    ax=axes[0]; style(ax)
+    for m in MIT:
+        g=piv.xs(m, level=2)
+        ax.scatter(g["v2"], g["legacy"], s=9, alpha=.5, color=COLOR[m], marker=MARK[m],
+                   label=LABEL[m], linewidths=0)
+    lim=[0, float(piv.max().max())*1.03]; ax.plot(lim,lim,color="#52514e",lw=1,ls="--",zorder=1)
+    ax.set_xlim(lim); ax.set_ylim(lim)
+    ax.set_xlabel("estimation error, corrected", fontsize=8.5)
+    ax.set_ylabel("estimation error, defective", fontsize=8.5)
+    ax.set_title("(a) paired under common random numbers", fontsize=9)
+    ax.legend(frameon=False, fontsize=7.5, loc="lower right")
+
+    ax=axes[1]; style(ax)
+    xs=np.arange(len(MIT)); wd=0.36
+    for k,noise in enumerate(["dev_lagos","dev_algiers"]):
+        sub=f1[f1.noise==noise].set_index("method").reindex(MIT)
+        pos=xs+(k-0.5)*wd
+        ax.bar(pos, sub.mean_d_abs_norm, width=wd*0.9, color=["#2a78d6","#eb6834"][k],
+               label=noise.replace("dev_",""), zorder=3)
+        ax.errorbar(pos, sub.mean_d_abs_norm,
+                    yerr=[sub.mean_d_abs_norm-sub.ci_lo, sub.ci_hi-sub.mean_d_abs_norm],
+                    fmt="none", ecolor="#0b0b0b", elinewidth=1.1, capsize=2.5, zorder=5)
+        ax.errorbar(pos, sub.mean_d_abs_norm,
+                    yerr=[sub.mean_d_abs_norm-sub.cluster_lo, sub.cluster_hi-sub.mean_d_abs_norm],
+                    fmt="none", ecolor="#9a9a94", elinewidth=2.6, alpha=.45, capsize=0, zorder=4)
+    ax.axhline(0, color="#52514e", lw=.8)
+    ax.set_xticks(xs); ax.set_xticklabels([LABEL[m] for m in MIT], fontsize=8)
+    ax.set_ylabel("mean signed difference / $C_{max}$", fontsize=8.5)
+    ax.set_title("(b) dark = stratified CI, light = cluster CI", fontsize=9)
+    ax.legend(frameon=False, fontsize=7.5)
+
+    ax=axes[2]; style(ax)
+    ss=s[s.noise!="ALL"]; xs=np.arange(len(ss)); wd=0.36
+    ax.bar(xs-wd/2, ss.split_regret_legacy, width=wd*0.9, color="#e34948", label="defective", zorder=3)
+    ax.bar(xs+wd/2, ss.split_regret_v2, width=wd*0.9, color="#1baf7a", label="corrected", zorder=3)
+    ax.set_xticks(xs); ax.set_xticklabels([n.replace("dev_","") for n in ss.noise], fontsize=8)
+    ax.set_ylabel("split-sample regret / $C_{max}$", fontsize=8.5)
+    ax.set_title("(c) select on one sample, pay on another", fontsize=9)
+    ax.legend(frameon=False, fontsize=7.5)
+    fig.suptitle("Implementation contrast on fresh confirmation data (simulator only)", fontsize=10.5)
+    fig.tight_layout(rect=[0,0,1,0.93]); save(fig,"figR2_impact")
+
+    insts=sorted(df.instance.unique()); noises=sorted(df[df.impl=="legacy"].noise.unique())
+    fig,axes=plt.subplots(1,len(noises), figsize=(4.0*len(noises),3.4), squeeze=False)
+    for j,nz in enumerate(noises):
+        ax=axes[0][j]; style(ax); xs=np.arange(len(insts)); wd=0.2
+        for k,m in enumerate(ALL4):
+            v=(d[(d.noise==nz)&(d.method==m)&(d.impl=="v2")]
+               .groupby("instance").d_abs_norm.mean().reindex(insts))
+            ax.bar(xs+(k-1.5)*wd, v.values, width=wd*0.9, color=COLOR[m], label=LABEL[m], zorder=3)
+        ax.set_xticks(xs); ax.set_xticklabels(insts, fontsize=7.5, rotation=30, ha="right")
+        ax.set_title(nz, fontsize=9)
+        if j==0: ax.set_ylabel("mean estimation error / $C_{max}$", fontsize=8.5)
+    axes[0][0].legend(frameon=False, fontsize=7.5)
+    fig.suptitle("Per-instance results, corrected implementation (simulator only; 30 seeds per bar)", fontsize=10.5)
+    fig.tight_layout(rect=[0,0,1,0.92]); save(fig,"figR2_perinstance")
+    print("figures written: figR2_impact, figR2_perinstance")
+
+
 def main():
     df = load()
     print(f"loaded {len(df)} rows; replicates={sorted(df.eval_id.unique())}; "
           f"namespace={df.seed_namespace.unique()}")
     f1 = family1(df); bv = bias_variance(df); w, s, pr = winners(df)
+    tot = costs_and_audit(df); figures(df, f1, s)
     pd.set_option("display.width", 200)
     print("\n=== F1 implementation contrast (normalised by per-instance Cmax) ===")
     print(f1[["noise","method","n_cells","mean_d_abs_norm","ci_lo","ci_hi","cluster_lo","cluster_hi",
@@ -207,6 +310,8 @@ def main():
     print(s.round(4).to_string(index=False))
     print("\n=== per-instance mean rankings ===")
     print(pr.to_string(index=False))
+    print("\n=== cost, budget match, stream-collision audit ===")
+    print(json.dumps(tot, indent=2))
 
 if __name__ == "__main__":
     main()
