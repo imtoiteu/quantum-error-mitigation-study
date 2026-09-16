@@ -53,10 +53,12 @@ def load():
 
 def assert_shared_compilation(df):
     """Finding 3: one base circuit per (instance, noise, seed) across ALL arms."""
-    g = df.groupby(["instance","noise","seed"]).fp.nunique()
+    missing = int(df.fp.isna().sum())
+    g = df.groupby(["instance","noise","seed"]).fp.nunique(dropna=False)
     bad = g[g > 1]
     out = dict(cells_checked=int(len(g)), cells_with_multiple_base_circuits=int(len(bad)),
-               max_distinct=int(g.max()) if len(g) else 0)
+               max_distinct=int(g.max()) if len(g) else 0,
+               rows_missing_fingerprint=missing)
     (PROC/"R3_compilation_check.json").write_text(json.dumps(out, indent=2))
     return out, bad
 
@@ -108,6 +110,8 @@ def selection_table(df):
             rec[f"delta_heldout__{sname}"] = (E[mL] - E[mC]) / cm
             rec[f"win_legacy__{sname}"], rec[f"win_v2__{sname}"] = mL, mC
             rec[f"changed__{sname}"] = mL != mC
+            # Top-two gap on the SELECTION replicate under the CORRECTED implementation,
+            # i.e. the view a correctly-implemented benchmark would have when choosing.
             s2 = sorted(Vx.values())
             gap = (s2[1] - s2[0]) / cm
             rec[f"gap__{sname}"] = gap
