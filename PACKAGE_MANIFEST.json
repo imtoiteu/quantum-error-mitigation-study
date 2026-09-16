@@ -1,7 +1,7 @@
 {
   "package": "quantum-error-mitigation-review-round3.zip",
-  "built_utc": "2026-09-16T18:23:51+00:00",
-  "git_commit": "8a0c338101674df6524e61da88849e55830bdfa3",
+  "built_utc": "2026-09-16T18:25:02+00:00",
+  "git_commit": "aa00f9428f8e5cdc5283d0b9cecbef5c99d84811",
   "git_branch": "review-round3",
   "repository": "git@github-quantum:imtoiteu/quantum-error-mitigation-study.git",
   "repository_visibility": "private at time of packaging",
