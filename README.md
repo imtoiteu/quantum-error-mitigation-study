@@ -94,6 +94,17 @@ See the module docstring in [`src/qemstudy/runner.py`](src/qemstudy/runner.py).
 - All settings in version-controlled config files; seeds fixed before running.
 - Simulator results are labelled as such everywhere.
 
+## Review status
+
+**Results are frozen for independent review as of 2026-09-16.** No further experiments will be run,
+and the manuscript has not been started.
+
+Start with **[`REVIEW.md`](REVIEW.md)**. It separates preregistered from exploratory analysis,
+absolute effects from ratios against near-zero baselines, and direct evidence from proposed
+explanations — and documents a material defect in the ZNE arm (achieved noise scaling does not match
+the nominal scale factors, `REVIEW.md` §6.1). Where `REVIEW.md` and `HANDOFF.md` differ,
+`REVIEW.md` is correct.
+
 ## Handoff
 
 [`HANDOFF.md`](HANDOFF.md) carries the research questions, gap evidence, target venues, exact

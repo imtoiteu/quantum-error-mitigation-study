@@ -2,7 +2,8 @@
 __pycache__/
 *.py[cod]
 .ipynb_checkpoints/
-logs/*.log
+# Pilot run logs ARE version-controlled (small, and required by the study protocol).
+# logs/*.log
 .DS_Store
 # Raw results ARE version-controlled (small JSON/CSV); large artefacts are not:
 results/**/*.npz

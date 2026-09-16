@@ -11,3 +11,7 @@ pandas>=2.2
 matplotlib>=3.9
 networkx>=3.3
 PyYAML>=6.0
+# Required transitively by mitiq's Qiskit<->Cirq conversion (cirq.contrib.qasm_import).
+# NOT pulled in automatically by `pip install mitiq`. Without it, mitiq.zne.scaling.fold_global
+# raises ModuleNotFoundError: No module named 'ply' and the entire ZNE arm cannot run.
+ply>=3.11

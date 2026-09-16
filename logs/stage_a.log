@@ -1,0 +1,14 @@
+Stage A: 2400 cells, 4 workers
+  200/2400    86.0s elapsed  eta  945.5s
+  400/2400   303.3s elapsed  eta 1516.6s
+  600/2400   843.2s elapsed  eta 2529.5s
+  800/2400   962.2s elapsed  eta 1924.5s
+  1000/2400  1074.1s elapsed  eta 1503.8s
+  1200/2400  1183.7s elapsed  eta 1183.7s
+  1400/2400  1237.3s elapsed  eta  883.8s
+  1600/2400  1384.9s elapsed  eta  692.4s
+  1800/2400  1744.8s elapsed  eta  581.6s
+  2000/2400  1841.6s elapsed  eta  368.3s
+  2200/2400  1931.3s elapsed  eta  175.6s
+  2400/2400  2023.2s elapsed  eta    0.0s
+done in 2023.5s -> /root/imtoiteu/quantum-error-mitigation-study/results/raw/stage_a.jsonl
