@@ -9,22 +9,23 @@ from __future__ import annotations
 import hashlib, json, pathlib, sys, zipfile, datetime, subprocess
 
 ROOT = pathlib.Path("/root/imtoiteu/quantum-error-mitigation-study")
-OUT  = pathlib.Path("/root/imtoiteu/quantum-error-mitigation-review-round2.zip")
+OUT  = pathlib.Path("/root/imtoiteu/quantum-error-mitigation-review-round3.zip")
 MAX_TOTAL_MB = 90.0          # practical package size budget
 
 INCLUDE_GLOBS = [
     "manuscript/**/*", "supplementary/**/*", "figures/**/*",
     "src/**/*.py", "tests/**/*.py", "experiments/**/*.py",
     "configs/**/*", "docs/**/*.md",
-    "results/v2/processed/**/*", "results/v2r2/processed/**/*",
+    "results/v2/processed/**/*", "results/v2r2/processed/**/*", "results/v2r3/processed/**/*",
     "README.md", "HANDOFF.md", "REVIEW.md", "REVIEW_RESPONSE.md", "FINAL_REVIEW.md",
     "AUTHOR_ACTIONS.md", "REPRODUCE.md", "CLAIM_EVIDENCE.csv",
-    "REVIEW_RESPONSE_round2.md",
+    "REVIEW_RESPONSE_round2.md", "REVIEW_RESPONSE_round3.md",
     "requirements.txt", "requirements-lock.txt", ".gitignore",
-    "logs/v2/*.log", "logs/v2r2/*.log",
+    "logs/v2/*.log", "logs/v2r2/*.log", "logs/v2r3/*.log",
 ]
 # Large raw data: include if it fits, else record retrieval procedure.
-RAW_CANDIDATES = ["results/v2r2/raw/confirm.jsonl",          # round-2 fresh data first
+RAW_CANDIDATES = ["results/v2r3/raw/confirm.jsonl",          # round-3 data first
+                  "results/v2r2/raw/confirm.jsonl",
                   "results/v2/raw/main_study.jsonl", "results/v2/raw/pilot.jsonl",
                   "results/raw/stage_a.jsonl", "results/raw/stage_b.jsonl"]
 EXCLUDE_PARTS = {".venv", "__pycache__", ".git", ".ipynb_checkpoints"}
