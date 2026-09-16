@@ -1,0 +1,8 @@
+total cells 7560, already done 0, to run 7560
+  100/7560     11.0s  eta   820.4s  rss 0.30GB
+  200/7560     42.1s  eta  1547.9s  rss 0.31GB
+  300/7560     63.5s  eta  1537.2s  rss 0.31GB
+  400/7560    124.7s  eta  2231.4s  rss 0.34GB
+  500/7560    223.7s  eta  3159.2s  rss 0.34GB
+  600/7560    361.4s  eta  4192.7s  rss 0.34GB
+  700/7560    490.0s  eta  4802.4s  rss 0.34GB
