@@ -240,8 +240,9 @@ between a correct integration and an incorrect one. Details in the supplementary
 
 \section{Consequences on a benchmark}\label{sec:impact}
 Identical configurations --- same instances, noise, budget, seeds --- were run through the defective
-and corrected implementations under common random numbers, from a fresh seed namespace on a clean
-committed tree. Differences are normalised by each instance's own $C_{\max}$ before averaging.
+and corrected implementations under common random numbers, from a fresh seed namespace, with the
+SHA-256 content hash of every execution-path file recorded per row. Differences are normalised by
+each instance's own $C_{\max}$ before averaging.
 
 \textbf{Inference scope.} Primary inference is over the \textbf{six fixed instances}, with
 uncertainty from a stratified bootstrap resampling seeds within each instance. A secondary
