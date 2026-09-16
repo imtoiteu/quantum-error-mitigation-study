@@ -71,7 +71,7 @@ editable `.drawio`) · `results/v2r2/{raw,processed}` · `configs/v2/` · `tests
 ## 5. Honest assessment
 
 **Publication readiness: unresolved, and the contribution is modest by construction.** The evidence
-supports every claim made and the artifact reproduces from a clean environment. But the hazard is
+supports every claim made and the artifact reproduces from a clean-room install. But the hazard is
 documented, the standard tooling already solves it, the measured decision cost is small in absolute
 terms (0.0067 of $C_{\max}$), and over half the winner changes are
 near ties. The value rests on the validation oracles and the honest measurement, not on novelty.

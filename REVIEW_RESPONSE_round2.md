@@ -187,7 +187,15 @@ All 7,560 round-1 rows record `git_commit=414fa51`, `git_dirty=True`, `config_sh
 
 **The `git_dirty=True` label stands and is not revised.** This is reconstruction, not a clean-run
 guarantee. Round-2 rows additionally record the **SHA-256 content hash of every execution-path
-file**, and the fresh run was launched from a clean tree at commit `c228cf4`.
+file**.
+
+> **Round-3 correction to this wording.** An earlier version of this section said the round-2 run
+> "was launched from a clean tree". That overstated what the evidence supports. The recorded hashes
+> establish only that **the eight execution-path files matched their committed versions**; they say
+> nothing about the rest of the working tree, and the rows themselves record `git_dirty=True`.
+> The dirty flag arises because the run's own log file is created by the shell redirect before
+> `provenance()` executes, and logs are tracked — but that is an explanation, not a clean-tree
+> claim. **Verified execution-file hashes do not imply a clean working tree.**
 
 ## 9. Contribution and external comparison — **ACCEPTED. Contribution reframed.**
 

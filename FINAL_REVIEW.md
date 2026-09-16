@@ -69,7 +69,7 @@ study plus a reusable validation artifact — explicitly *not* the discovery of 
 | Check | Result |
 |---|---|
 | Clean-room install from `requirements.txt` | **PASS** (round 1, unchanged) — fresh venv, `pip check` clean, tests green |
-| Fresh run launched from a clean committed tree | **PASS** — commit `c228cf4`, `git status` empty at launch |
+| Executed code identified by content hash | **PASS** — all 8 execution-path files match their committed versions. **This is not a clean-tree claim:** rows record `git_dirty=True`, and verified file hashes do not imply a clean working tree |
 | Execution-path content hashes recorded per row | **PASS** — 8 files hashed into every round-2 row |
 | Round-1 provenance reconstructed, not relabelled | **PASS** — config hash still matches; all execution-path files byte-identical between `414fa51` and `830ebdc`; `git_dirty=True` stands |
 | Tables and figures regenerate from archived raw data | **PASS** |
