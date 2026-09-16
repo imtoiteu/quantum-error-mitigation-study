@@ -19,32 +19,38 @@ competing-interest statement has been invented.** You must supply:
 Edit the `\author{...}` block in `manuscript/manuscript.tex`. If the target edition uses
 double-anonymous review, leave it as-is.
 
-## 2. Venue facts — partially verified in round 2
+## 2. Venue: no target edition currently has an open call
 
-**VERIFIED from the official IEEE QCE Call for Technical Papers** (no longer unknown):
+**Verified 2026-09-16.** This is the most important practical fact in this file.
 
-- Full papers are **8–10 pages** plus 2 pages of references; short papers 4–6 plus 1.
-- Template is `\documentclass[10pt,conference]{IEEEtran}` **without** `compsoc` (now applied).
-- **At least one author must commit to register and attend in person.** This is an explicit
-  condition of submission, not an option.
-- The **QSYS — Software Systems** track lists "Testing, validation, and verification of quantum
-  programs and systems" and "Software techniques for error correction and noise mitigation".
+| Venue / edition | Status |
+|---|---|
+| IEEE QCE **2026** | **CLOSED** — technical papers were due **27 April 2026** (extended); the conference runs **13–18 September 2026**, i.e. now |
+| IEEE QCE **2027** | **Call not published.** All requirements UNKNOWN |
+| IEEE QSW **2026** | **CLOSED** — extended firm deadline **22 March 2026** |
+| IEEE QSW **2027** | **Call not published.** All requirements UNKNOWN |
+| IEEE TQE | Rolling; open today |
 
-**STILL UNKNOWN — you must check before submitting:**
+**The manuscript was deliberately NOT expanded** to the 8–10 page window retrieved from the QCE 2026
+call, because that edition is closed and the 2027 requirements may differ. Padding a paper to a
+closed edition's limit would be the wrong action.
 
-- [ ] QCE submission **deadline** (the technical-papers page defers to a separate deadlines page)
-- [ ] QCE **review model** (single- vs double-anonymous)
-- [ ] QCE **registration and publication fees** — amount unknown; do not assume affordable
-- [ ] Whether the venue mandates specific **AI-use disclosure** wording
+**Author actions:**
 
-**Decided by evidence, not assumption:**
+- [ ] **Decide whether to wait for the QCE 2027 / QSW 2027 calls, or submit to TQE now.** This is a
+      genuine judgement call about timing versus topical fit and only you can make it.
+- [ ] When a 2027 call appears, **re-verify**: page limit, template version, deadline, review model
+      (single/double anonymous), fees, and whether in-person attendance is still mandatory. Only then
+      adjust the manuscript length.
+- [ ] **QCE 2026 required at least one author to register and attend in person.** If that carries
+      over to 2027 and you cannot travel, QCE is not viable and the venue decision changes.
+- [ ] Check whether the chosen venue mandates specific **AI-use disclosure** wording; a draft
+      disclosure section is already in the manuscript.
 
-- [ ] **IEEE QSW 2026 is closed.** Verified dates: extended firm deadline 22 March 2026,
-      camera-ready 31 May 2026. Today is 16 September 2026. QSW is the closest topical match
-      (it lists transpilers, regression testing and program equivalence explicitly), so **monitor
-      the QSW 2027 call** — that may be the better venue when it opens.
-- [ ] **Can you satisfy the in-person attendance requirement?** If not, QCE is not viable and the
-      decision changes materially. This is the single most consequential unknown.
+**Recorded for reference only (QCE 2026, closed edition):** full papers 8–10 pages plus 2 for
+references; `\documentclass[10pt,conference]{IEEEtran}` without `compsoc` (already applied); QSYS
+track covers "Testing, validation, and verification of quantum programs and systems" and "Software
+techniques for error correction and noise mitigation". Fees were never stated and remain UNKNOWN.
 
 ## 3. Decisions the author may wish to override
 
