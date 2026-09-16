@@ -1,0 +1,8 @@
+=== installing ONLY from requirements.txt ===
+=== pip check ===
+No broken requirements found.
+=== running regression tests in clean room ===
+  [PASS] cx count is non-decreasing in scale factor and exceeds base
+
+ALL TESTS PASSED
+=== CLEANROOM OK ===
