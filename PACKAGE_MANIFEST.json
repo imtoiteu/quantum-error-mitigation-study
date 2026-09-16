@@ -1,14 +1,14 @@
 {
   "package": "quantum-error-mitigation-review-round2.zip",
-  "built_utc": "2026-09-16T08:37:13+00:00",
-  "git_commit": "478bc7128c93708ae8cd5990cccdc1f9bf418919",
+  "built_utc": "2026-09-16T08:38:24+00:00",
+  "git_commit": "7a8d8d078c90f441c5e2faa56b8bbc9e524b57c8",
   "git_branch": "review-round2",
   "repository": "git@github-quantum:imtoiteu/quantum-error-mitigation-study.git",
   "repository_visibility": "private at time of packaging",
   "simulator_only": true,
   "quantum_hardware_used": "none",
   "file_count": 120,
-  "total_bytes": 23293925,
+  "total_bytes": 23293483,
   "files": [
     {
       "path": ".gitignore",
@@ -32,8 +32,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "bytes": 5151,
-      "sha256": "3a95db6be4b6d9bd472633a8785083648805fd22be5ac94441469326e8ab80c3"
+      "bytes": 4709,
+      "sha256": "a264bb366ce701802c961e04b883a8190bdf4c57b82886d0b3588bb273289014"
     },
     {
       "path": "README.md",
