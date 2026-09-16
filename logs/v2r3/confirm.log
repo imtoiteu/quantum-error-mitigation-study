@@ -1,2 +1,14 @@
 total cells 5040, already done 0, to run 5040
   100/5040     91.0s  eta  4494.7s  rss 0.34GB
+  200/5040    207.7s  eta  5026.0s  rss 0.34GB
+  300/5040    274.5s  eta  4337.5s  rss 0.34GB
+  400/5040    398.7s  eta  4624.5s  rss 0.34GB
+  500/5040    628.5s  eta  5706.5s  rss 0.38GB
+  600/5040   1002.7s  eta  7419.9s  rss 0.38GB
+  700/5040   1313.5s  eta  8143.5s  rss 0.39GB
+  800/5040   1728.9s  eta  9163.0s  rss 0.39GB
+  900/5040   1923.5s  eta  8848.1s  rss 0.39GB
+  1000/5040   2086.6s  eta  8429.9s  rss 0.39GB
+  1100/5040   2193.3s  eta  7855.9s  rss 0.39GB
+  1200/5040   2361.0s  eta  7555.1s  rss 0.39GB
+  1300/5040   2583.7s  eta  7433.1s  rss 0.39GB

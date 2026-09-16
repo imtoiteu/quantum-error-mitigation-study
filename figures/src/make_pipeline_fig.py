@@ -13,7 +13,7 @@ import pathlib
 BLUE, GREEN, ORANGE, RED, GREY = "#2a78d6", "#1baf7a", "#eb6834", "#e34948", "#52514e"
 FIG = pathlib.Path(__file__).resolve().parents[1]
 
-def box(ax, x, y, w, h, text, ec, fc, fs=7.0, bold=False):
+def box(ax, x, y, w, h, text, ec, fc, fs=6.6, bold=False):
     ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.008,rounding_size=0.015",
                                 lw=1.0, edgecolor=ec, facecolor=fc, zorder=2))
     ax.text(x + w/2, y + h/2, text, ha="center", va="center", fontsize=fs, zorder=3,
@@ -27,11 +27,11 @@ def arrow(ax, p, q, color=GREY, ls="-"):
 fig, ax = plt.subplots(figsize=(7.1, 4.15))
 ax.set_xlim(0, 1); ax.set_ylim(0, 1); ax.axis("off")
 
-W, H, Y = 0.166, 0.135, 0.775           # top row geometry
-GAP = 0.035
-xs = [0.008 + i * (W + GAP) for i in range(5)]
+W, H, Y = 0.169, 0.142, 0.772           # top row geometry
+GAP = 0.027
+xs = [0.013 + i * (W + GAP) for i in range(5)]
 tops = ["QAOA circuit\n(virtual qubits)",
-        "transpile to device:\ncoupling map, basis,\nlayout $\\pi$",
+        "transpile to device\ncoupling map, basis\nlayout $\\pi$",
         "global folding\nscales $(1,3,5)$",
         "re-transpile\n$\\mathtt{opt\\_level}\\!=\\!0$",
         "execute\n(noisy simulator)"]
@@ -63,14 +63,14 @@ box(ax, 0.318, 0.575, 0.272, 0.155,
     RED, "#fdecea", fs=6.2, bold=True)
 arrow(ax, (0.454, 0.730), (0.454, Y), RED, ls="--")
 
-box(ax, 0.008, 0.105, 0.300, 0.165,
-    "DEFECT 2 (calibration)\nindexed by virtual $i$, but clbit $i$\nreads physical $q_{\\pi(i)}$\n$\\Rightarrow A$ inverted on wrong qubits",
-    RED, "#fdecea", fs=6.2, bold=True)
-arrow(ax, (0.1335, 0.270), (0.1335, BY), RED, ls="--")
-ax.text(0.318, 0.150, "known hazard: M3 provides\n$\\mathtt{final\\_measurement\\_mapping}$",
-        fontsize=5.8, color=GREY, ha="left", va="center", style="italic")
+box(ax, 0.012, 0.112, 0.244, 0.150,
+    "DEFECT 2 (calibration)\nindexed by virtual $i$, but\nclbit $i$ reads physical $q_{\\pi(i)}$\n$\\Rightarrow A$ inverted on wrong qubits",
+    RED, "#fdecea", fs=6.0, bold=True)
+arrow(ax, (0.134, 0.262), (0.134, BY), RED, ls="--")
+ax.text(0.134, 0.070, "M3 solves this via $\\mathtt{final\\_measurement\\_mapping}$",
+        fontsize=5.4, color=GREY, ha="center", va="center", style="italic")
 
-box(ax, 0.560, 0.092, 0.434, 0.196,
+box(ax, 0.465, 0.105, 0.508, 0.180,
     "TWO independent oracles are required:\n"
     "(a) folding: $U U^{\\dagger} U = U$, so the ideal\n"
     "distribution must be unchanged;\n"
@@ -80,7 +80,7 @@ box(ax, 0.560, 0.092, 0.434, 0.196,
 
 ax.text(0.5, 0.958, "Budget-matched ZNE / REM pipeline: two integration defect sites",
         ha="center", fontsize=9.0, fontweight="bold")
-ax.text(0.5, 0.030,
+ax.text(0.5, 0.022,
         "Budget rule: every method spends the same total shots $B$  "
         "(unmitigated $B$; ZNE $B/3$ per scale; REM $0.8B$ circuits $+\\,0.2B$ calibration)",
         ha="center", fontsize=6.6, color=GREY)

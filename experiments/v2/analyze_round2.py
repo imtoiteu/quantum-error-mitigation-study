@@ -281,19 +281,26 @@ def figures(df, f1, s):
     fig.tight_layout(rect=[0,0,1,0.93]); save(fig,"figR2_impact")
 
     insts=sorted(df.instance.unique()); noises=sorted(df[df.impl=="legacy"].noise.unique())
-    fig,axes=plt.subplots(1,len(noises), figsize=(4.0*len(noises),3.4), squeeze=False)
+    # Match Fig. 2's figure width so the two figures render at the same type size
+    # on the page, and leave room at the bottom for a shared legend that cannot
+    # overlap the bars.
+    fig,axes=plt.subplots(1,len(noises), figsize=(5.7*len(noises),3.3), squeeze=False)
     for j,nz in enumerate(noises):
         ax=axes[0][j]; style(ax); xs=np.arange(len(insts)); wd=0.2
         for k,m in enumerate(ALL4):
             v=(d[(d.noise==nz)&(d.method==m)&(d.impl=="v2")]
                .groupby("instance").d_abs_norm.mean().reindex(insts))
             ax.bar(xs+(k-1.5)*wd, v.values, width=wd*0.9, color=COLOR[m], label=LABEL[m], zorder=3)
-        ax.set_xticks(xs); ax.set_xticklabels(insts, fontsize=7.5, rotation=30, ha="right")
+        ax.set_xticks(xs); ax.set_xticklabels(insts, fontsize=8, rotation=28, ha="right")
         ax.set_title(nz, fontsize=9)
+        ax.margins(y=0.16)                      # headroom so no bar touches the frame
         if j==0: ax.set_ylabel("mean estimation error / $C_{max}$", fontsize=8.5)
-    axes[0][0].legend(frameon=False, fontsize=7.5)
-    fig.suptitle("Per-instance results, corrected implementation (simulator only; 30 seeds per bar)", fontsize=10.5)
-    fig.tight_layout(rect=[0,0,1,0.92]); save(fig,"figR2_perinstance")
+    h,l = axes[0][0].get_legend_handles_labels()
+    fig.legend(h, l, loc="lower center", ncol=4, frameon=False, fontsize=8.5,
+               bbox_to_anchor=(0.5, -0.02))     # shared legend, outside every axes
+    fig.suptitle("Per-instance results, corrected implementation (simulator only; 30 seeds per bar)",
+                 fontsize=10)
+    fig.tight_layout(rect=[0,0.06,1,0.93]); save(fig,"figR2_perinstance")
     print("figures written: figR2_impact, figR2_perinstance")
 
 
