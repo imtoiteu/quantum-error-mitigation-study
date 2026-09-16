@@ -159,8 +159,9 @@ Calibration policy is held fixed at per-estimate charging inside every compariso
 is confounded by a change of policy.
 
 \begin{table}[t]
-\caption{MaxCut instances. The reference is a multistart numerical best-known value, not a proven
-global ansatz optimum. ``Starts at best'' is the fraction of 60 restarts reaching it.}
+\caption{MaxCut instances. ``best $\langle C\rangle$'' is a multistart numerical best-known value,
+\textbf{not} a proven global ansatz optimum; ``ratio'' is $\langle C\rangle/C_{\max}$; ``at best''
+is the fraction of 60 restarts reaching that value.}
 \label{tab:instances}
 \centering\small
 \input{tables/tab_instances}
@@ -168,13 +169,14 @@ global ansatz optimum. ``Starts at best'' is the fraction of 60 restarts reachin
 
 \section{The defect and its detection}\label{sec:defect}
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\includegraphics[width=\columnwidth]{../figures/fig0_pipeline}
-\caption{The budget-matched ZNE/REM pipeline and the two defect sites. Both are silent: the pipeline
-returns a well-formed circuit and a plausible expectation value.}
+\includegraphics[width=0.86\textwidth]{../figures/fig0_pipeline}
+\caption{The budget-matched ZNE/REM pipeline and the two silent defect sites. Neither raises an
+error: the pipeline returns a well-formed circuit and a plausible expectation value. The oracle at
+lower right detects both without any noise model.}
 \label{fig:pipeline}
-\end{figure}
+\end{figure*}
 
 \subsection{Defect 1: folding discards the measurement map}
 Transpiling to a coupling map yields a layout $\pi$ such that classical bit $c$ records physical
@@ -238,22 +240,24 @@ method changes. Simulator only.}
 \label{fig:impact}
 \end{figure*}
 
-\begin{table}[t]
+\begin{table*}[t]
 \caption{Family F1: paired disagreement between the defective and corrected implementations
-($B=6000$, six instances $\times$ 30 seeds). $D$ is the absolute difference in estimation error.
+($B=6000$, six instances $\times$ 30 seeds, $n=180$ pairs per row). $D$ is the absolute difference in
+estimation error, in expected cut value. The signed mean is far smaller than the mean $|D|$: the
+defect randomises results rather than biasing them in one direction.
 $p_{\mathrm{BH}}$ is Benjamini--Hochberg adjusted within the six-test family.}
 \label{tab:f1}
 \centering\small
 \input{tables/tab_f1}
-\end{table}
+\end{table*}
 
 \begin{table}[t]
 \caption{Fraction of cells in which the best-performing mitigation method differs between the
-defective and corrected implementations. \emph{Mean regret} is the excess true error (measured under
-the corrected implementation) incurred by following the defective recommendation, averaged over
-flipped cells; \emph{best attainable} is the mean true error of the correct choice.}
+defective and corrected implementations. \emph{Regret} is the excess true error (measured under the
+corrected implementation) from following the defective recommendation, averaged over flipped cells;
+\emph{best} is the mean true error of the correct choice.}
 \label{tab:flip}
-\centering\small
+\centering\footnotesize
 \input{tables/tab_flip}
 \end{table}
 
@@ -262,7 +266,7 @@ defective and the corrected implementation, and paired the results cell by cell.
 defect from every other source of variation.
 
 Table~\ref{tab:f1} reports the paired disagreement. All six tests in the declared family are
-significant after Benjamini--Hochberg correction ($p_{\mathrm{BH}} \le \FONemaxP$), with mean
+significant after Benjamini--Hochberg correction (largest adjusted $p$ was \FONemaxP), with mean
 absolute disagreement between \FONeminDis{} and \FONemaxDis{} in expected cut value. The signed mean
 differences are much smaller than the absolute ones: \textbf{the defect does not bias results in a
 consistent direction, it randomises them}, which is precisely why it is hard to notice.
@@ -292,9 +296,12 @@ Simulator only.}
 
 \begin{table*}[t]
 \caption{Family F2: each mitigated arm versus the unmitigated baseline at matched total shots, paired
-on (instance, seed). $\Delta$ is the mean paired difference in estimation error (negative favours the
-mitigated arm); $\Delta/C_{\max}$ expresses it in approximation-ratio units against the declared
-practical threshold of $0.01$. $p_{\mathrm{BH}}$ is adjusted within the \FTwoNTests-test family.}
+on (instance, seed), $n=180$ per row. $\Delta$ is the mean paired difference in estimation error
+(negative favours the mitigated arm); $\Delta/C_{\max}$ expresses it in approximation-ratio units.
+$p_{\mathrm{BH}}$ is Benjamini--Hochberg adjusted within the \FTwoNTests-test family.
+Verdicts: ``helps''/``harms'' denote a statistically resolvable effect; an asterisk$^{\ast}$ marks
+effects at or above the declared practical threshold of $0.01$ in approximation-ratio units;
+``---'' denotes no resolvable difference.}
 \label{tab:f2}
 \centering\small
 \input{tables/tab_f2}

@@ -70,3 +70,9 @@ total cells 7560, already done 0, to run 7560
   6900/7560   9240.5s  eta   883.9s  rss 0.40GB
   7000/7560   9348.1s  eta   747.8s  rss 0.40GB
   7100/7560   9482.8s  eta   614.4s  rss 0.40GB
+  7200/7560   9679.8s  eta   484.0s  rss 0.40GB
+  7300/7560   9997.3s  eta   356.1s  rss 0.40GB
+  7400/7560  10256.0s  eta   221.8s  rss 0.40GB
+  7500/7560  10568.2s  eta    84.5s  rss 0.40GB
+  7560/7560  10790.4s  eta     0.0s  rss 0.40GB
+batch done in 10790.4s -> /root/imtoiteu/quantum-error-mitigation-study/results/v2/raw/main_study.jsonl

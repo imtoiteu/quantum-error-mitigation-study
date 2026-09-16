@@ -8,3 +8,11 @@ __pycache__/
 # Raw results ARE version-controlled (small JSON/CSV); large artefacts are not:
 results/**/*.npz
 *.egg-info/
+
+# LaTeX build artifacts (the compiled manuscript.pdf IS tracked)
+manuscript/*.aux
+manuscript/*.log
+manuscript/*.out
+manuscript/*.blg
+# (manuscript.bbl IS tracked: IEEE submission expects .tex + .bbl)
+manuscript/*.synctex.gz
