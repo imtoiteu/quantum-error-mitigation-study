@@ -44,17 +44,27 @@ import numpy as np
 
 # Campaign namespaces. Never reuse a retired namespace for new data.
 NAMESPACES = {
-    "v2_main_2026_09_16": 0,     # RETIRED: original main study + contaminated pilot
-    "v2r2_confirm_2026_09_16": 1,  # round-2 fresh confirmation (new, unused)
-    "v2r2_selftest": 2,          # correctness tests only, never experimental data
+    "v2_main_2026_09_16": 0,       # RETIRED: original main study + contaminated pilot
+    "v2r2_confirm_2026_09_16": 1,  # RETIRED: round-2; compilation depended on method (confound)
+    "v2r3_confirm_2026_09_16": 3,  # round-3 rerun with compilation shared across methods
+    "v2r2_selftest": 2,            # correctness tests only, never experimental data
 }
 MASTER_ENTROPY = 20260916_0001
 
 ROLES = ("init_params", "optimizer", "simulator", "calibration",
          "transpiler", "bootstrap", "instance_draw")
 
+# ROUND-3 (review finding 3): COMPILATION randomness is separated from SAMPLING
+# randomness. The transpiler stream may depend ONLY on these fields, so every method,
+# budget and implementation in a cell shares one prepared base circuit -- same layout,
+# same routing permutation, same measurement map. Round 2 seeded the transpiler from
+# the full cell (including `method`), which produced different routing permutations
+# for different methods and confounded the method ranking with compilation.
+COMPILATION_FIELDS = ("instance", "noise", "seed", "compile_rep")
+
 # Factors that participate in a simulator/calibration coordinate, in fixed order.
-COORD_FIELDS = ("instance", "noise", "method", "budget", "seed", "eval_id", "basis", "scale")
+COORD_FIELDS = ("instance", "noise", "method", "budget", "seed", "eval_id", "basis", "scale",
+                "compile_rep")
 # Deliberately NOT a coordinate field -- see PAIRING CONTRACT above.
 PAIRED_FIELDS = ("impl",)
 
@@ -75,6 +85,24 @@ def coords_from(namespace: str, **kw) -> tuple[int, ...]:
         raise ValueError(f"unknown coordinate field(s) {sorted(bad)}")
     out = [NAMESPACES[namespace]]
     for f in COORD_FIELDS:
+        v = kw.get(f, 0)
+        out.append(_h(v) if isinstance(v, str) else int(round(float(v) * 1000)))
+    return tuple(out)
+
+
+def compilation_coords(namespace: str, **kw) -> tuple[int, ...]:
+    """Coordinate tuple for the TRANSPILER stream only (review finding 3).
+
+    Deliberately ignores method, budget, eval_id, basis, scale and impl, so a single
+    compiled base circuit is shared by every arm of a cell.
+    """
+    if namespace not in NAMESPACES:
+        raise ValueError(f"unknown namespace {namespace!r}")
+    bad = set(kw) - set(COMPILATION_FIELDS)
+    if bad:
+        raise ValueError(f"compilation coords must not depend on {sorted(bad)}")
+    out = [NAMESPACES[namespace]]
+    for f in COMPILATION_FIELDS:
         v = kw.get(f, 0)
         out.append(_h(v) if isinstance(v, str) else int(round(float(v) * 1000)))
     return tuple(out)

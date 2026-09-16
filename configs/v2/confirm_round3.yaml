@@ -1,0 +1,21 @@
+# ROUND-3 RERUN - frozen before any round-3 data. See docs/confirmation-protocol-round3.md
+# Same size as round 2 (5040 cells). Compilation shared across methods within a cell.
+study: confirm_v2r3
+seed_namespace: v2r3_confirm_2026_09_16    # never previously used
+p: 1
+instances: [prism, cycle6, k33, octahedron, path6, wheel5]
+noise:
+  - {name: dev_lagos,   kind: device}
+  - {name: dev_algiers, kind: device}
+methods: [none, zne, rem, zne_rem]
+budgets: [6000]
+seeds: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
+impls: [v2, legacy]
+legacy_budget: 6000
+eval_replicates: 2          # replicate 0 = selection sample, replicate 1 = held-out evaluation
+share_compilation: true     # transpiler stream keyed by (instance, noise, seed, compile_rep)
+scales: [1.0, 3.0, 5.0]
+fit: richardson
+cal_fraction: 0.20
+rem_clip: true
+output: results/v2r3/raw/confirm.jsonl

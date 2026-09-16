@@ -29,7 +29,7 @@ from ..noise import NoiseSpec
 from .circuits import (prepare, fold_preserving_measurements, to_basis,
                        calibration_circuits, legacy_fold, legacy_calibration_circuits)
 from .rem import build_confusion, apply_rem
-from .seeding import int_seed, coords_from
+from .seeding import int_seed, coords_from, compilation_coords
 
 ODD_SCALES = (1.0, 3.0, 5.0)
 FACTORIES = {"richardson": RichardsonFactory, "linear": LinearFactory, "exp": ExpFactory}
@@ -69,6 +69,7 @@ class Executor:
     max_parallel: int = 1
     namespace: str = "v2_main_2026_09_16"
     cell: dict = field(default_factory=dict)
+    compile_cell: dict = field(default_factory=dict)   # instance/noise/seed/compile_rep only
 
     def __post_init__(self):
         self.noise_model = self.noise.build()
@@ -84,10 +85,29 @@ class Executor:
 
     def prepare(self, qc, tag: str):
         if tag not in self._prep_cache:
-            self._prep_cache[tag] = prepare(
-                qc, self.coupling_map, self.n,
-                int_seed("transpiler", coords_from(self.namespace, **self.cell)))
+            # ROUND-3 (finding 3): the transpiler seed comes from the COMPILATION
+            # coordinates only, so every method/budget/implementation in this cell
+            # shares one base circuit. Falls back to the cell for retired namespaces.
+            cc = self.compile_cell or {k: self.cell[k] for k in ("instance", "noise", "seed")
+                                       if k in self.cell}
+            tseed = (int_seed("transpiler", compilation_coords(self.namespace, **cc))
+                     if cc else int_seed("transpiler", coords_from(self.namespace, **self.cell)))
+            self._prep_cache[tag] = prepare(qc, self.coupling_map, self.n, tseed)
         return self._prep_cache[tag]
+
+    def compile_seed(self) -> int:
+        cc = self.compile_cell or {k: self.cell[k] for k in ("instance", "noise", "seed")
+                                   if k in self.cell}
+        return (int_seed("transpiler", compilation_coords(self.namespace, **cc))
+                if cc else int_seed("transpiler", coords_from(self.namespace, **self.cell)))
+
+    def base_fingerprint(self, tag: str = "z") -> str:
+        """Stable fingerprint of the prepared base circuit, asserted across arms."""
+        import hashlib
+        pr = self._prep_cache[tag]
+        sig = (str(pr.initial_layout), str(pr.routing_permutation), str(pr.clbit_to_phys),
+               str(sorted(pr.circuit.count_ops().items())), str(pr.circuit.depth()))
+        return hashlib.sha256("|".join(sig).encode()).hexdigest()[:16]
 
     def stream_coords(self, **extra):
         """Full coordinate tuple for this cell, optionally refined by basis/scale/eval."""
@@ -146,6 +166,7 @@ def estimate(ex: Executor, circuits: dict, combine, method: str, budget: int, *,
     use_zne = method in ("zne", "zne_rem")
     detail = {"bases": nb, "scales": list(scales) if use_zne else [1.0],
               "legacy_mapping": bool(legacy_mapping),
+              "base_fingerprint": {b: ex.base_fingerprint(b) for b in bases},
               "clbit_to_phys": {b: list(preps[b].clbit_to_phys) for b in bases},
               "initial_layout": {b: preps[b].initial_layout for b in bases},
               "routing_permutation": {b: preps[b].routing_permutation for b in bases}}
@@ -179,8 +200,10 @@ def estimate(ex: Executor, circuits: dict, combine, method: str, budget: int, *,
             vals = {}
             for bi, b in enumerate(bases):
                 folder = legacy_fold if legacy_mapping else fold_preserving_measurements
-                fc = to_basis(folder(preps[b].circuit, s),
-                              int_seed("transpiler", ex.stream_coords(scale=s)))
+                # Basis translation of the folded circuit is deterministic given the
+                # base circuit; seed it from the COMPILATION stream so it too is
+                # shared across methods rather than varying with the arm.
+                fc = to_basis(folder(preps[b].circuit, s), ex.compile_seed())
                 ops = fc.count_ops()
                 gate_counts[f"{b}@{s}"] = {g: int(ops.get(g, 0)) for g in ("cx", "sx", "x")}
                 cnt = ex.run([fc], per, role="simulator",

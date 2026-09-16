@@ -113,10 +113,15 @@ def main():
             circ = I.measured_circuits(params)
             comb = lambda v, I=I: I.cut_from_counts(v["z"])
             ns = NoiseSpec(j["noise"], j["noise_kind"], j["lam"])
-            ex = Executor(ns, I.n, run_id=j["seed"],
-                          namespace=cfg["seed_namespace"],
-                          cell=dict(instance=j["instance"], noise=j["noise"],
-                                    method=j["method"], budget=j["budget"], seed=j["seed"]))
+            ex = Executor(
+                ns, I.n, run_id=j["seed"], namespace=cfg["seed_namespace"],
+                cell=dict(instance=j["instance"], noise=j["noise"], method=j["method"],
+                          budget=j["budget"], seed=j["seed"]),
+                # ROUND-3: compilation depends only on these, so every method and
+                # implementation in this cell shares one prepared base circuit.
+                compile_cell=(dict(instance=j["instance"], noise=j["noise"],
+                                   seed=j["seed"], compile_rep=j["seed"])
+                              if cfg.get("share_compilation") else {}))
             val, detail, _ = estimate(
                 ex, circ, comb, j["method"], j["budget"],
                 eval_id=j.get("eval_id", 0), scales=tuple(cfg["scales"]), fit=cfg["fit"],
@@ -135,6 +140,7 @@ def main():
                    "rem_negative_mass": detail.get("rem_negative_mass"),
                    "rem_cond_number": detail.get("rem_cond_number"),
                    "gate_counts_per_scale": detail.get("gate_counts_per_scale"),
+                   "base_fingerprint": detail.get("base_fingerprint"),
                    "clbit_to_phys": detail.get("clbit_to_phys"),
                    "initial_layout": detail.get("initial_layout"),
                    "routing_permutation": detail.get("routing_permutation"),
